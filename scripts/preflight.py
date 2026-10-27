@@ -1,14 +1,15 @@
 """Check the local Python environment and CrossCam configuration."""
-from pathlib import Path
 import platform
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-import cv2  # noqa: E402
-import psutil  # noqa: E402
-from crosscam.config import load_config  # noqa: E402
+import cv2
+import psutil
+
+from crosscam.config import load_config
 
 
 def main() -> int:
