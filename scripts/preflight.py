@@ -20,7 +20,7 @@ def main() -> int:
     config = load_config(ROOT / "configs" / "default.yaml")
     print(f"Cameras: {len(config['cameras'])}")
     print(f"Transitions: {len(config.get('transitions', []))}")
-    print("CUDA check: not performed by this scaffold; select the inference framework in M1.")
+    print("CUDA: run scripts/check_gpu.py to validate PyTorch GPU execution.")
     print("Preflight passed.")
     return 0
 
