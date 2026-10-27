@@ -1,0 +1,62 @@
+project:
+  name: CrossCam
+  mode: recorded_replay
+  random_seed: 42
+
+runtime:
+  target_sample_fps: 5
+  max_queue_size: 8
+  frame_width: 640
+  device: auto
+  association_device: cpu
+
+association:
+  accept_threshold: 0.78
+  defer_threshold: 0.55
+  min_margin: 0.08
+  use_topology_prior: true
+  widen_search_if_weak: true
+  # These are initial heuristics, not calibrated probabilities.
+  max_transition_seconds: 180
+
+cameras:
+  - id: cam_01
+    label: Camera 1
+  - id: cam_02
+    label: Camera 2
+  - id: cam_03
+    label: Camera 3
+  - id: cam_04
+    label: Camera 4
+
+transitions:
+  - from: cam_01
+    to: cam_02
+    min_seconds: 2
+    max_seconds: 45
+    prior: 1.0
+  - from: cam_02
+    to: cam_03
+    min_seconds: 3
+    max_seconds: 60
+    prior: 1.0
+  - from: cam_03
+    to: cam_04
+    min_seconds: 2
+    max_seconds: 50
+    prior: 1.0
+  - from: cam_02
+    to: cam_01
+    min_seconds: 2
+    max_seconds: 45
+    prior: 1.0
+  - from: cam_03
+    to: cam_02
+    min_seconds: 3
+    max_seconds: 60
+    prior: 1.0
+  - from: cam_04
+    to: cam_03
+    min_seconds: 2
+    max_seconds: 50
+    prior: 1.0
