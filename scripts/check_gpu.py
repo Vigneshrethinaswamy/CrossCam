@@ -1,5 +1,4 @@
 """Verify that the installed PyTorch build can execute on an NVIDIA CUDA device."""
-import sys
 
 
 def main() -> int:
