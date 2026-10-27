@@ -39,6 +39,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--sample-fps", type=float, default=3.0)
     parser.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
     parser.add_argument("--confidence", type=float, default=0.45)
+    parser.add_argument("--iou-threshold", type=float, default=0.30)
+    parser.add_argument("--max-missed-frames", type=int, default=10)
     parser.add_argument("--max-videos", type=int, default=0, help="Optional limit; 0 means all")
     return parser.parse_args()
 
@@ -47,6 +49,12 @@ def main() -> int:
     args = parse_args()
     if args.sample_fps <= 0:
         print("--sample-fps must be greater than zero", file=sys.stderr)
+        return 2
+    if not 0 <= args.iou_threshold <= 1:
+        print("--iou-threshold must be between 0 and 1", file=sys.stderr)
+        return 2
+    if args.max_missed_frames < 0:
+        print("--max-missed-frames must be non-negative", file=sys.stderr)
         return 2
     if args.max_videos < 0:
         print("--max-videos must be non-negative", file=sys.stderr)
@@ -74,7 +82,10 @@ def main() -> int:
     for video_path in videos:
         camera_id = video_path.stem
         csv_path = args.output_dir / f"{video_path.stem}_tracks.csv"
-        tracker = IoUTracker()
+        tracker = IoUTracker(
+            iou_threshold=args.iou_threshold,
+            max_missed_frames=args.max_missed_frames,
+        )
         sampler = FrameSampler(args.sample_fps)
         cap = cv2.VideoCapture(str(video_path))
         if not cap.isOpened():
@@ -167,6 +178,8 @@ def main() -> int:
     summary_path.write_text(json.dumps({
         "device": str(detector.device),
         "confidence_threshold": args.confidence,
+        "iou_threshold": args.iou_threshold,
+        "max_missed_frames": args.max_missed_frames,
         "sample_target_fps": args.sample_fps,
         "videos_processed": len(summaries),
         "results": summaries,
