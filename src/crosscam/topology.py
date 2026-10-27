@@ -1,7 +1,7 @@
 """Camera topology and candidate-generation helpers."""
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from .models import Tracklet, Transition
 
