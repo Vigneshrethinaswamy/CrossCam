@@ -15,7 +15,7 @@ CrossCam is a research-oriented prototype for tracking people across four camera
 ## Architecture
 `VideoSource → FrameSampler → Detector → LocalTracker → TrackletBuilder → ReIDEncoder → CandidateGenerator → AssociationEngine → TrackStore → Dashboard`
 
-See [architecture](docs/ARCHITECTURE.md), [evaluation plan](docs/EVALUATION.md), [dataset notes](docs/DATASETS.md), and [milestones](docs/MILESTONES.md).
+See [architecture](docs/ARCHITECTURE.md), [evaluation plan](docs/EVALUATION.md), [dataset notes](docs/DATASETS.md), [milestones](docs/MILESTONES.md), and [environment setup](docs/ENVIRONMENT.md).
 
 ## Hardware-aware plan
 Target hardware is a Windows laptop with an RTX 3050 Laptop GPU (4 GB VRAM) and 16 GB RAM. Use pretrained, compact models; sample frames; resize inputs; keep association on CPU; bound queues; and avoid training from scratch. Throughput targets are hypotheses to measure, not guarantees.
@@ -25,11 +25,14 @@ Target hardware is a Windows laptop with an RTX 3050 Laptop GPU (4 GB VRAM) and 
 cd C:\Works
 git clone https://github.com/Vigneshrethinaswamy/CrossCam.git
 cd CrossCam
-py -3.11 -m venv .venv
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
+# Install CUDA-enabled PyTorch; see docs/ENVIRONMENT.md
+.\.venv\Scripts\python.exe -m pip install --force-reinstall torch torchvision --index-url https://download.pytorch.org/whl/cu130 --extra-index-url https://pypi.org/simple
+.\.venv\Scripts\python.exe scripts\check_gpu.py
 python scripts/preflight.py
 pytest
 streamlit run app.py
@@ -42,6 +45,7 @@ If PowerShell blocks activation, use `.\.venv\Scripts\python.exe` directly or re
 - `docs/`: architecture, datasets, evaluation, and milestones
 - `src/crosscam/`: typed data models and starter association logic
 - `scripts/preflight.py`: environment and configuration checks
+- `scripts/check_gpu.py`: PyTorch CUDA execution check
 - `tests/`: deterministic unit tests
 - `app.py`: synthetic dashboard scaffold
 - `data/`, `models/`: local-only runtime artifacts (not committed)
