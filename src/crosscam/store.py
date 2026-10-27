@@ -2,6 +2,7 @@
 import json
 import sqlite3
 from pathlib import Path
+from typing import Self
 
 from .models import AssociationResult, Tracklet
 
@@ -77,8 +78,8 @@ class TrackStore:
     def close(self) -> None:
         self._connection.close()
 
-    def __enter__(self) -> "TrackStore":
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type, exc, traceback) -> None:
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
         self.close()
