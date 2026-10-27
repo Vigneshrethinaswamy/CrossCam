@@ -1,0 +1,5 @@
+numpy>=1.26,<3
+opencv-python>=4.9
+PyYAML>=6.0
+streamlit>=1.36
+psutil>=5.9
