@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
 
 import streamlit as st
+
 from crosscam.config import load_config
 
 st.set_page_config(page_title="CrossCam", page_icon="📹", layout="wide")
