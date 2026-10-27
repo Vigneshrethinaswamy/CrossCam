@@ -4,17 +4,19 @@
 - [x] Define the pipeline and camera topology configuration.
 - [x] Add typed tracklet/association models and heuristic candidate scoring.
 - [x] Add deterministic tests and synthetic dashboard.
-- [ ] Review scaffold locally and run preflight.
+- [x] Review scaffold locally and run preflight.
 
 ## M1 — Hardware and data preflight
-- [ ] Confirm Python, OpenCV, PyTorch/CUDA and GPU memory.
+- [x] Confirm Python, OpenCV, PyTorch/CUDA and GPU memory.
 - [ ] Select a dataset sequence and verify its license/annotations.
-- [ ] Establish a reproducible baseline run.
+- [ ] Establish a reproducible baseline run on an authorized video.
 
 ## M2 — Recorded replay and local tracking
-- [ ] Add timestamped video reader and frame sampler.
-- [ ] Integrate pretrained person detector and local tracker.
+- [x] Add timestamped video reader and frame sampler.
+- [x] Integrate pretrained person detector and a lightweight local IoU tracker.
+- [ ] Run the end-to-end pipeline on an authorized sample video.
 - [ ] Save local tracklets and replay diagnostics.
+- [ ] Measure sampled FPS, inference latency, and peak GPU memory.
 
 ## M3 — Re-identification and global association
 - [ ] Integrate compact pretrained person ReID encoder.
