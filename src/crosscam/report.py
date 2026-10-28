@@ -40,11 +40,12 @@ def build_report(summary: dict[str, Any], diagnostics: dict[str, Any] | None = N
                 f"{item.get('longest_track_observations', 0)} observations"
             )
     lines.extend([
-        "", "## Interpretation", "",
-        "These measurements describe detector output, runtime, and camera-local track continuity. "
-        "They do not establish identity switches, cross-camera match correctness, or unique-person "
-        "accuracy. Cross-camera identity evaluation requires synchronized camera timestamps and "
-        "ground-truth identity labels. The IoU track IDs are local heuristic labels.", "",
+                (
+            "These measurements describe detector output, runtime, and camera-local track continuity. "
+            "They do not establish identity switches, cross-camera match correctness, or unique-person "
+            "accuracy. Cross-camera identity evaluation requires synchronized camera timestamps and "
+            "ground-truth identity labels. The IoU track IDs are local heuristic labels."
+        ), "",
     ])
     return "\n".join(lines)
 
