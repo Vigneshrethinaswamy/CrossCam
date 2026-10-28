@@ -323,6 +323,29 @@ The following are deliberately open. They must be recorded in a decision log wit
 | D9 — Storage | Decide whether TrackStore is implemented now or removed from the first milestone | Required dashboard/evaluation use cases and unique-key/run-isolation design |
 | D10 — Environment | Approve dependency changes and the exact reproducible environment plan | Before/after package diff and rollback plan |
 
+
+## D1 — Dataset feasibility review (research completed; approval still conditional)
+
+### L0 candidate: MOT20-derived ReID crop release
+
+A 2026 release on Mendeley Data provides 387,426 filtered full-body crops derived from MOT20 training sequences, with identity/camera/frame metadata, query/gallery folders, triplet annotations, and a stated CC BY 4.0 license. The published package lists 310,935 training images, 36,603 validation images, 465 query images, and 39,423 gallery images. This is a promising **encoder/retrieval sanity-test candidate**, not a cross-camera tracklet benchmark by itself. Before use, verify the upstream MOT20 terms and the derivative release's actual files/metadata, ensure its camera IDs and identity protocol support the intended evaluation, and confirm the dataset's full download size. Do not assume the stated derivative license automatically resolves every upstream restriction. Source: https://data.mendeley.com/datasets/7txp76nrzs/1
+
+### L1 candidate: MTMMC multi-camera tracking benchmark
+
+The official MTMMC site describes 16 RGB/thermal cameras, 3,669 identities, 3,052,800 frames, COCO-style annotations, overlapping and non-overlapping camera views, and realistic campus/factory environments. It is a strong match to CrossCam's multi-camera timing/topology and tracklet-association needs. However, access is controlled: the official process requires a signed user agreement and a written request explaining intended use; the site states access resumed on February 1, 2026. We must receive approval and inspect the exact package and permitted-use terms before downloading or processing it. A small authorized subset should be selected first; downloading the full benchmark is not the default. Source: https://sites.google.com/view/mtmmc
+
+### Alternative L1 candidate: MEVID
+
+MEVID offers identity-linked tracklets across 33 camera views, 158 global identities, 8,092 tracklets, and outfit annotations, making it relevant to video ReID. Its official repository lists approximately 30.5 GB for the training crops, 13 GB for test crops, and 127 GB for supporting video clips. That storage footprint is a poor first fit for the current 16 GB RAM / 4 GB VRAM laptop if the full video data is needed. Use only if a small, permitted subset is feasible and its specific data terms are confirmed; the general MEVA CC BY 4.0 statement should not be treated as a substitute for verifying MEVID package terms. Sources: https://github.com/Kitware/MEVID and https://mevadata.org/
+
+### D1 recommendation
+
+1. **L0:** provisionally use the MOT20-derived crop release for preprocessing and image-retrieval sanity checks, after verifying the upstream/derivative terms and the exact metadata protocol.
+2. **L1:** apply for MTMMC access and request permission to use a small subset for non-commercial learning/evaluation. Do not download the full dataset before approval and feasibility checks.
+3. **L2:** defer own-camera capture unless L1 access is denied, the approved subset lacks suitable identity/timing annotations, or the target camera setup needs separate validation. Any capture must be consented and have explicit retention/purge rules.
+
+D1 is **not closed** until the L0 terms and files are checked and either MTMMC access is approved or an alternative L1 plan is documented. No dataset has been downloaded as part of this review.
+
 ## 14. Milestones after the gates are approved
 
 - **A0 — Freeze and correct baseline:** capture baseline-v0; specify baseline-v1; fix and test candidate generation, overlap, topology prior, timing, and config defects.
@@ -343,7 +366,7 @@ Until D1–D10 are resolved, the permitted work is architecture review, source/l
 
 | ID | Status | Current position |
 |---|---|---|
-| D1 Dataset | OPEN | No dataset approved |
+| D1 Dataset | IN REVIEW | L0: MOT20-derived crops, conditional on license/protocol audit; L1: request MTMMC access and use a small approved subset |
 | D2 Baselines | PROPOSED | Freeze baseline-v0; baseline-v1 contains correctness fixes only |
 | D3 Encoder | OPEN | OSNet family is a candidate, not selected |
 | D4 Tracklets | OPEN | Measure purity/fragmentation before locking rules |
