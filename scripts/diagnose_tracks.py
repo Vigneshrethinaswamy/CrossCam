@@ -3,6 +3,7 @@
 import argparse
 import csv
 import json
+import itertools
 import statistics
 import sys
 from collections import defaultdict
@@ -51,7 +52,7 @@ def build_diagnostics(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]],
         observations.sort(key=lambda item: (item["timestamp_seconds"], item["frame_index"]))
         timestamps = [item["timestamp_seconds"] for item in observations]
         frame_indices = [item["frame_index"] for item in observations]
-        gaps = [round(b - a, 4) for a, b in zip(timestamps, timestamps[1:])]
+        gaps = [round(b - a, 4) for a, b in itertools.pairwise(timestamps)]
         confidences = [item["confidence"] for item in observations]
         track_summaries.append({
             "video": video,
