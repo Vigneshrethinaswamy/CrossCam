@@ -2,6 +2,7 @@
 import argparse
 import csv
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -19,16 +20,27 @@ def parse_offsets(values: list[str]) -> dict[str, float]:
     for value in values:
         try:
             camera, seconds = value.split("=", 1)
-            offsets[camera] = float(seconds)
+            seconds = float(seconds)
         except ValueError as exc:
             raise ValueError(f"Invalid camera offset {value!r}; expected CAMERA=SECONDS") from exc
+        if not camera or not math.isfinite(seconds):
+            raise ValueError(f"Invalid camera offset {value!r}; require a camera and finite seconds")
+        offsets[camera] = seconds
     return offsets
 
 
 def rank(tracklet_rows: list[dict], config: dict, offsets: dict[str, float]) -> list[dict]:
+    known_cameras = {camera["id"] for camera in config.get("cameras", [])}
+    unknown = {row["camera_id"] for row in tracklet_rows} - known_cameras
+    if unknown:
+        raise ValueError(f"Tracklets refer to cameras missing from config: {sorted(unknown)}")
+
+    # Camera-local video timestamps start at zero. Normalize offsets so even negative
+    # relative offsets produce valid non-negative Tracklet timestamps.
+    baseline = min([0.0, *offsets.values()])
     tracklets = []
     for row in tracklet_rows:
-        offset = offsets.get(row["camera_id"], 0.0)
+        offset = offsets.get(row["camera_id"], 0.0) - baseline
         tracklets.append(Tracklet(
             tracklet_id=row["tracklet_id"],
             camera_id=row["camera_id"],
@@ -48,7 +60,8 @@ def rank(tracklet_rows: list[dict], config: dict, offsets: dict[str, float]) -> 
         )
         for candidate in candidates:
             result = associate(
-                source, candidate,
+                source,
+                candidate,
                 accept_threshold=float(settings.get("accept_threshold", 0.78)),
                 defer_threshold=float(settings.get("defer_threshold", 0.55)),
             )
@@ -70,8 +83,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tracklets", type=Path, default=ROOT / "outputs/tracklets.json")
     parser.add_argument("--config", type=Path, default=ROOT / "configs/default.yaml")
-    parser.add_argument("--camera-offset", action="append", default=[], metavar="CAMERA=SECONDS",
-                        help="Offset a video's local timestamps to a shared timeline; repeat as needed")
+    parser.add_argument(
+        "--camera-offset",
+        action="append",
+        default=[],
+        metavar="CAMERA=SECONDS",
+        help="Offset a video's local timestamps to a shared timeline; repeat as needed",
+    )
     parser.add_argument("--output", type=Path, default=ROOT / "outputs/associations.csv")
     args = parser.parse_args()
     if not args.tracklets.is_file():
@@ -86,9 +104,11 @@ def main() -> int:
         print(f"Could not associate tracklets: {exc}", file=sys.stderr)
         return 2
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    fields = ["source_tracklet_id", "source_camera_id", "candidate_tracklet_id",
-              "candidate_camera_id", "elapsed_seconds", "via_topology", "score",
-              "decision", "reasons"]
+    fields = [
+        "source_tracklet_id", "source_camera_id", "candidate_tracklet_id",
+        "candidate_camera_id", "elapsed_seconds", "via_topology", "score",
+        "decision", "reasons",
+    ]
     with args.output.open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=fields)
         writer.writeheader()
