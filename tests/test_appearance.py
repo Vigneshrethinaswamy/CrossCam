@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from crosscam.appearance import hsv_histogram
-from crosscam.association import associate
+from crosscam.association import associate, score_candidate
 from crosscam.config import load_config
 from crosscam.models import Tracklet
 from crosscam.topology import CameraTopology
@@ -39,6 +39,18 @@ def test_candidate_association_uses_time_topology_and_appearance():
     assert candidate.via_topology
     assert result.score > 0.9
     assert any(reason.startswith("appearance_component=") for reason in result.reasons)
+
+
+def test_orthogonal_histograms_receive_zero_appearance_score():
+    topology = CameraTopology.from_config(load_config(CONFIG_PATH))
+    source = Tracklet("cam_01:1", "cam_01", 0, 5, [1.0, 0.0])
+    target = Tracklet("cam_02:2", "cam_02", 10, 12, [0.0, 1.0])
+    candidate = topology.generate_candidates(source, [target], widen_if_empty=False)[0]
+    _, reasons = score_candidate(source, candidate)
+    appearance_reason = next(
+        reason for reason in reasons if reason.startswith("appearance_component=")
+    )
+    assert appearance_reason == "appearance_component=0.000"
 
 
 def test_rank_applies_relative_offsets_and_keeps_heuristic_decisions():
