@@ -8,6 +8,10 @@ from crosscam.association import associate
 from crosscam.config import load_config
 from crosscam.models import Tracklet
 from crosscam.topology import CameraTopology
+from scripts.associate_tracklets import parse_offsets, rank
+
+
+CONFIG_PATH = Path(__file__).resolve().parents[1] / "configs" / "default.yaml"
 
 
 def test_hsv_histogram_is_normalized_and_deterministic():
@@ -27,8 +31,7 @@ def test_hsv_histogram_rejects_invalid_inputs():
 
 
 def test_candidate_association_uses_time_topology_and_appearance():
-    config_path = Path(__file__).resolve().parents[1] / "configs" / "default.yaml"
-    topology = CameraTopology.from_config(load_config(config_path))
+    topology = CameraTopology.from_config(load_config(CONFIG_PATH))
     source = Tracklet("cam_01:1", "cam_01", 0, 5, [1.0, 0.0])
     target = Tracklet("cam_02:2", "cam_02", 10, 12, [1.0, 0.0])
     candidate = topology.generate_candidates(source, [target], widen_if_empty=False)[0]
@@ -37,3 +40,24 @@ def test_candidate_association_uses_time_topology_and_appearance():
     assert candidate.via_topology
     assert result.score > 0.9
     assert any(reason.startswith("appearance_component=") for reason in result.reasons)
+
+
+def test_rank_applies_relative_offsets_and_keeps_heuristic_decisions():
+    rows = [
+        {"tracklet_id": "cam_01:1", "camera_id": "cam_01", "start_time": 0,
+         "end_time": 5, "embedding": [1.0, 0.0]},
+        {"tracklet_id": "cam_02:2", "camera_id": "cam_02", "start_time": 10,
+         "end_time": 12, "embedding": [1.0, 0.0]},
+    ]
+    results = rank(rows, load_config(CONFIG_PATH), parse_offsets(["cam_01=-20"]))
+    assert len(results) == 1
+    assert results[0]["elapsed_seconds"] == 25
+    assert results[0]["decision"] == "accept"
+    assert results[0]["via_topology"]
+
+
+def test_offsets_reject_non_finite_and_malformed_values():
+    with pytest.raises(ValueError):
+        parse_offsets(["cam_01=nan"])
+    with pytest.raises(ValueError):
+        parse_offsets(["cam_01"])
