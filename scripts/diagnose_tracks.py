@@ -2,8 +2,8 @@
 
 import argparse
 import csv
-import json
 import itertools
+import json
 import statistics
 import sys
 from collections import defaultdict
