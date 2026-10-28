@@ -40,6 +40,7 @@ def build_report(summary: dict[str, Any], diagnostics: dict[str, Any] | None = N
                 f"{item.get('longest_track_observations', 0)} observations"
             )
     lines.extend([
+                
         "", "## Interpretation", "",
         (
             "These measurements describe detector output, runtime, and camera-local track continuity. "

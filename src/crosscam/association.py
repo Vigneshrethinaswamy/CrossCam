@@ -20,7 +20,13 @@ def cosine_similarity(left: Sequence[float], right: Sequence[float]) -> float:
 def score_candidate(source: Tracklet, candidate: Candidate) -> tuple[float, tuple[str, ...]]:
     """Return a ranking heuristic in [0, 1], not a probability."""
     similarity = cosine_similarity(source.embedding, candidate.tracklet.embedding)
-    appearance_score = (similarity + 1.0) / 2.0 if source.embedding and candidate.tracklet.embedding else 0.5
+    # HSV histograms are non-negative, so cosine similarity is already in [0, 1].
+    # Missing descriptors should not receive an artificial neutral appearance score.
+    appearance_score = (
+        max(0.0, similarity)
+        if source.embedding and candidate.tracklet.embedding
+        else 0.0
+    )
     elapsed_score = math.exp(-max(0.0, candidate.elapsed_seconds) / 90.0)
     topology_score = max(0.0, min(1.0, candidate.topology_prior))
     score = 0.70 * appearance_score + 0.20 * elapsed_score + 0.10 * topology_score
