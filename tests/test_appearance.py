@@ -8,6 +8,7 @@ from crosscam.association import associate
 from crosscam.config import load_config
 from crosscam.models import Tracklet
 from crosscam.topology import CameraTopology
+
 from scripts.associate_tracklets import parse_offsets, rank
 
 
