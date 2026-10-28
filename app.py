@@ -1,4 +1,4 @@
-"""CrossCam dashboard for recorded-video evaluation artifacts."""
+"""CrossCam dashboard for recorded-video evaluation and association artifacts."""
 import json
 from pathlib import Path
 
@@ -8,6 +8,7 @@ import streamlit as st
 ROOT = Path(__file__).resolve().parent
 EVALUATION_DIR = ROOT / "outputs" / "evaluation"
 DIAGNOSTICS_DIR = ROOT / "outputs" / "diagnostics"
+ASSOCIATION_PATH = ROOT / "outputs" / "associations.csv"
 
 st.set_page_config(page_title="CrossCam", page_icon="📹", layout="wide")
 st.title("CrossCam")
@@ -72,7 +73,22 @@ if diagnostics_path.is_file():
 else:
     st.info("Run scripts/diagnose_tracks.py to add track continuity summaries.")
 
+if ASSOCIATION_PATH.is_file():
+    st.subheader("Experimental cross-camera candidates")
+    st.caption(
+        "Ranked heuristic suggestions from mean HSV color histograms, elapsed time, and camera "
+        "topology. Accept/defer/reject are uncalibrated decisions and are not identity verification."
+    )
+    associations = pd.read_csv(ASSOCIATION_PATH)
+    st.dataframe(associations, use_container_width=True, hide_index=True)
+else:
+    st.info(
+        "To inspect experimental candidates, run scripts/extract_tracklets.py and "
+        "scripts/associate_tracklets.py after evaluating videos from configured cameras."
+    )
+
 st.warning(
-    "These outputs describe detections and camera-local track continuity. They do not measure "
-    "cross-camera match accuracy or prove that two track IDs belong to the same person."
+    "These outputs describe detections and heuristic candidate rankings. Without synchronized "
+    "timestamps and ground-truth identity labels, they do not measure cross-camera match accuracy "
+    "or prove that two track IDs belong to the same person."
 )
