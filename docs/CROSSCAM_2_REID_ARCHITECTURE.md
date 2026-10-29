@@ -328,36 +328,43 @@ The following are deliberately open. They must be recorded in a decision log wit
 
 ### Selected candidate
 
-**Primary evaluation dataset:** NVIDIA PhysicalAI Smart Spaces, specifically a small, synthetic multi-camera scene from `MTMC_Tracking_2024`.
+**Primary evaluation dataset:** NVIDIA PhysicalAI Smart Spaces, `MTMC_Tracking_2024`, `train/scene_002`.
 
-Official source: https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces
+Official dataset: https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces
+Scene directory: https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces/tree/main/MTMC_Tracking_2024/train/scene_002
 
-The official Hugging Face dataset card declares **CC BY 4.0** and describes synchronized multi-camera video with cross-camera tracking IDs. The 2024 edition is person-focused and is listed as 90 scenes, 212 hours, 953 cameras, 2D bounding boxes and cross-camera tracking IDs, with a total release size of about 216.95 GB. We must not download the full release. One listed training scene, `scene_002`, is approximately 2.31 GB including its annotations; this is a feasibility lead, not a commitment to download every file in that scene.
+The official Hugging Face page lists the repository under **CC BY 4.0**. The scene listing shows a total of about **2.31 GB**, camera folders `camera_0011` through `camera_0019`, `ground_truth.txt` at about **84.1 MB**, and `ground_truth_2025_format.json` at about **179 MB**. Each camera folder has a video and calibration file; the observed camera_0019 video is about **246 MB**. These figures are listings, not a guarantee that every camera file is the same size.
 
-### Why this is the preferred alternative
+### Why this candidate fits
 
-- The dataset card declares CC BY 4.0, avoiding MTMMC's specific agreement prohibition that raised concerns about ReID/biometric processing. We still must read and follow the dataset's actual license and attribution requirements.
-- Synthetic data avoids processing identifiable footage of real people for this initial association benchmark.
-- Cross-camera IDs and synchronized video are relevant to testing candidate retrieval and association.
-- We can limit the download to one scene and a small camera subset, rather than downloading the multi-hundred-gigabyte collection.
+- Synthetic multi-camera video, avoiding identifiable real-person footage in the initial benchmark.
+- Ground truth contains a consistent object ID across cameras, frame index, 2D bounding boxes, and world coordinates.
+- Per-camera calibration is provided.
+- A small selected subset should be feasible without downloading the full 216.95 GB 2024 release.
 
-### Scope and limitations
+### Important caveats
 
-This dataset can test the pipeline's correctness and performance on synthetic footage. It cannot establish real-world generalization by itself. The appearance distribution may differ from real cameras; results must be labeled synthetic-domain results. A later, separately authorized and appropriately licensed evaluation may be needed for real-world claims.
+- Synthetic results do not establish real-world generalization.
+- Use the repository's attribution/citation requirements and verify that the selected files remain covered by the displayed CC BY 4.0 license.
+- Do not download the whole scene by default. The ground-truth file itself is large, but downloading it first enables us to measure cross-camera identity overlap and select cameras based on evidence.
+- The selected subset is for evaluation of association; do not train/tune and report final scores on the same identities without a separated protocol.
 
-### Download plan — not yet executed
+### Minimal staged download plan — not yet executed
 
-1. Inspect the official directory layout and identify one training scene with synchronized video and ground truth.
-2. Estimate exact sizes for the required annotation files and selected camera streams.
-3. Select at most four cameras for the first experiment, prioritizing usable cross-camera identity overlap and temporal synchronization.
-4. Download only those camera streams plus the required scene-level annotations/calibration; omit depth maps and all unrelated scenes.
-5. Record source URL, dataset version/commit, selected files, SHA-256 hashes, and required attribution in the local run manifest.
-6. Keep all dataset files outside Git and outside public sharing; do not upload them to external services.
-7. Before treating the license gate as closed, confirm that the selected files and annotations are covered by the displayed CC BY 4.0 license and follow the dataset's attribution instructions.
+**Stage A — selection metadata only**
+1. Download only `ground_truth.txt` (listed at 84.1 MB) into the local ignored dataset directory.
+2. Parse its camera/object/frame columns to measure pairwise shared identities, temporal overlap, and annotation counts across cameras.
+3. Choose up to four cameras using those statistics, rather than choosing camera IDs arbitrarily.
+4. Record the dataset revision, file URL, SHA-256, and license/attribution in the local run manifest.
+
+**Stage B — selected video streams**
+5. Download only the selected camera folders' `video.mp4` and `calibration.json` files.
+6. Keep `ground_truth_2025_format.json`, depth/auxiliary files, and other scenes out unless a demonstrated requirement justifies them.
+7. Verify downloaded file sizes and hashes; keep all data outside Git and do not upload it to public or third-party services.
 
 ### D1 status
 
-**Provisionally selected; not downloaded and not fully closed.** Close D1 after confirming exact files/sizes, attribution, and the selected scene's annotation suitability. If a small camera subset cannot be downloaded independently, reassess storage feasibility before proceeding.
+**Provisional selection; metadata audit next.** No dataset files have been downloaded by this workflow. Close D1 after camera overlap, storage requirements, attribution, and annotation suitability are confirmed. If scene_002 does not yield four useful cameras, inspect another scene before downloading video.
 ## 14. Milestones after the gates are approved
 
 - **A0 — Freeze and correct baseline:** capture baseline-v0; specify baseline-v1; fix and test candidate generation, overlap, topology prior, timing, and config defects.
