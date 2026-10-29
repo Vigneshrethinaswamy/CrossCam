@@ -324,28 +324,40 @@ The following are deliberately open. They must be recorded in a decision log wit
 | D10 — Environment | Approve dependency changes and the exact reproducible environment plan | Before/after package diff and rollback plan |
 
 
-## D1 — Dataset feasibility review (research completed; approval still conditional)
+## D1 — Dataset decision: NVIDIA PhysicalAI Smart Spaces (provisional selection)
 
-### L0 candidate: MOT20-derived ReID crop release
+### Selected candidate
 
-A 2026 release on Mendeley Data provides 387,426 filtered full-body crops derived from MOT20 training sequences, with identity/camera/frame metadata, query/gallery folders, triplet annotations, and a stated CC BY 4.0 license. The published package lists 310,935 training images, 36,603 validation images, 465 query images, and 39,423 gallery images. This is a promising **encoder/retrieval sanity-test candidate**, not a cross-camera tracklet benchmark by itself. Before use, verify the upstream MOT20 terms and the derivative release's actual files/metadata, ensure its camera IDs and identity protocol support the intended evaluation, and confirm the dataset's full download size. Do not assume the stated derivative license automatically resolves every upstream restriction. Source: https://data.mendeley.com/datasets/7txp76nrzs/1
+**Primary evaluation dataset:** NVIDIA PhysicalAI Smart Spaces, specifically a small, synthetic multi-camera scene from `MTMC_Tracking_2024`.
 
-### L1 candidate: MTMMC multi-camera tracking benchmark
+Official source: https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces
 
-The official MTMMC site describes 16 RGB/thermal cameras, 3,669 identities, 3,052,800 frames, COCO-style annotations, overlapping and non-overlapping camera views, and realistic campus/factory environments. It is a strong match to CrossCam's multi-camera timing/topology and tracklet-association needs. However, access is controlled: the official process requires a signed user agreement and a written request explaining intended use; the site states access resumed on February 1, 2026. We must receive approval and inspect the exact package and permitted-use terms before downloading or processing it. A small authorized subset should be selected first; downloading the full benchmark is not the default. Source: https://sites.google.com/view/mtmmc
+The official Hugging Face dataset card declares **CC BY 4.0** and describes synchronized multi-camera video with cross-camera tracking IDs. The 2024 edition is person-focused and is listed as 90 scenes, 212 hours, 953 cameras, 2D bounding boxes and cross-camera tracking IDs, with a total release size of about 216.95 GB. We must not download the full release. One listed training scene, `scene_002`, is approximately 2.31 GB including its annotations; this is a feasibility lead, not a commitment to download every file in that scene.
 
-### Alternative L1 candidate: MEVID
+### Why this is the preferred alternative
 
-MEVID offers identity-linked tracklets across 33 camera views, 158 global identities, 8,092 tracklets, and outfit annotations, making it relevant to video ReID. Its official repository lists approximately 30.5 GB for the training crops, 13 GB for test crops, and 127 GB for supporting video clips. That storage footprint is a poor first fit for the current 16 GB RAM / 4 GB VRAM laptop if the full video data is needed. Use only if a small, permitted subset is feasible and its specific data terms are confirmed; the general MEVA CC BY 4.0 statement should not be treated as a substitute for verifying MEVID package terms. Sources: https://github.com/Kitware/MEVID and https://mevadata.org/
+- The dataset card declares CC BY 4.0, avoiding MTMMC's specific agreement prohibition that raised concerns about ReID/biometric processing. We still must read and follow the dataset's actual license and attribution requirements.
+- Synthetic data avoids processing identifiable footage of real people for this initial association benchmark.
+- Cross-camera IDs and synchronized video are relevant to testing candidate retrieval and association.
+- We can limit the download to one scene and a small camera subset, rather than downloading the multi-hundred-gigabyte collection.
 
-### D1 recommendation
+### Scope and limitations
 
-1. **L0:** provisionally use the MOT20-derived crop release for preprocessing and image-retrieval sanity checks, after verifying the upstream/derivative terms and the exact metadata protocol.
-2. **L1:** apply for MTMMC access and request permission to use a small subset for non-commercial learning/evaluation. Do not download the full dataset before approval and feasibility checks.
-3. **L2:** defer own-camera capture unless L1 access is denied, the approved subset lacks suitable identity/timing annotations, or the target camera setup needs separate validation. Any capture must be consented and have explicit retention/purge rules.
+This dataset can test the pipeline's correctness and performance on synthetic footage. It cannot establish real-world generalization by itself. The appearance distribution may differ from real cameras; results must be labeled synthetic-domain results. A later, separately authorized and appropriately licensed evaluation may be needed for real-world claims.
 
-D1 is **not closed** until the L0 terms and files are checked and either MTMMC access is approved or an alternative L1 plan is documented. No dataset has been downloaded as part of this review.
+### Download plan — not yet executed
 
+1. Inspect the official directory layout and identify one training scene with synchronized video and ground truth.
+2. Estimate exact sizes for the required annotation files and selected camera streams.
+3. Select at most four cameras for the first experiment, prioritizing usable cross-camera identity overlap and temporal synchronization.
+4. Download only those camera streams plus the required scene-level annotations/calibration; omit depth maps and all unrelated scenes.
+5. Record source URL, dataset version/commit, selected files, SHA-256 hashes, and required attribution in the local run manifest.
+6. Keep all dataset files outside Git and outside public sharing; do not upload them to external services.
+7. Before treating the license gate as closed, confirm that the selected files and annotations are covered by the displayed CC BY 4.0 license and follow the dataset's attribution instructions.
+
+### D1 status
+
+**Provisionally selected; not downloaded and not fully closed.** Close D1 after confirming exact files/sizes, attribution, and the selected scene's annotation suitability. If a small camera subset cannot be downloaded independently, reassess storage feasibility before proceeding.
 ## 14. Milestones after the gates are approved
 
 - **A0 — Freeze and correct baseline:** capture baseline-v0; specify baseline-v1; fix and test candidate generation, overlap, topology prior, timing, and config defects.
@@ -366,7 +378,7 @@ Until D1–D10 are resolved, the permitted work is architecture review, source/l
 
 | ID | Status | Current position |
 |---|---|---|
-| D1 Dataset | IN REVIEW | L0: MOT20-derived crops, conditional on license/protocol audit; L1: request MTMMC access and use a small approved subset |
+| D1 Dataset | PROVISIONAL | NVIDIA PhysicalAI Smart Spaces, CC BY 4.0 per official card; one small synthetic 2024 scene and ≤4 cameras, pending file/size/attribution audit |
 | D2 Baselines | PROPOSED | Freeze baseline-v0; baseline-v1 contains correctness fixes only |
 | D3 Encoder | OPEN | OSNet family is a candidate, not selected |
 | D4 Tracklets | OPEN | Measure purity/fragmentation before locking rules |
