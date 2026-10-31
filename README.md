@@ -30,13 +30,13 @@ cd C:\Works\CrossCam
 Place only authorized videos under data/, named with configured camera IDs (for example, cam_01.mp4). The first detector run may download pretrained weights.
 
 ~~~powershell
-.\.venv\Scripts\python.exe scripts\evaluate_videos.py --input-dir data --output-dir outputs\evaluation --sample-fps 3 --device auto --max-missed-seconds 2.0
+.\.venv\Scripts\python.exe scripts\evaluate_videos.py --input-dir data --output-dir outputs\evaluation --sample-fps 3 --device auto
 .\.venv\Scripts\python.exe scripts\diagnose_tracks.py --input-dir outputs\evaluation --output-dir outputs\diagnostics
 .\.venv\Scripts\python.exe scripts\make_report.py
 .\.venv\Scripts\python.exe -m streamlit run app.py
 ~~~
 
-The report is written to outputs/crosscam_report.md. The dashboard reads evaluation and diagnostic outputs. Use scripts/replay_video.py for an interactive single-video replay.
+The report is written to outputs/crosscam_report.md. The dashboard reads evaluation and diagnostic outputs. Track retention defaults to the former 10 sampled frames converted to seconds using the selected sample rate; override it with `--max-missed-seconds`. The deprecated `--max-missed-frames` flag remains available as a compatibility alias. Use scripts/replay_video.py for an interactive single-video replay.
 
 ## Experimental cross-camera candidate ranking
 After evaluating videos from configured cameras, derive HSV crop histograms and rank tracklet candidates on a shared timeline:
