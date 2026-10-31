@@ -356,9 +356,9 @@ The pinned Hugging Face dataset card displays **Creative Commons Attribution 4.0
 ### D1 status
 
 **Closed for the initial benchmark choice:** scene_002 at the pinned revision, using cameras 12, 14, 17, and 19 for the first controlled four-camera study. Annotation schema, identity coverage, calibration mapping, dataset synchronization claim, file hash, size, and displayed license have been checked. Video decoding/PTS validation remains a preflight item for after approval to download the selected streams; no videos or model checkpoints have been downloaded.
-### D2 implementation note (2026-10-31)
+### D2 implementation and verification (2026-10-31)
 
-Baseline-v1 correctness code has been authored on the separate branch `codex/baseline-v1-correctness`, based on the approved architecture branch. Scope covers candidate-widening union behavior, neutral unknown topology evidence, explicit camera relationship states, duplicate-edge validation, explicit timing-offset uncertainty, configurable widening horizon and time-decay, decision margins, and elapsed-seconds tracker retention. The targeted isolated regression harness reports 35 passing tests; this is not the complete repository suite and does not substitute for running pytest and Ruff in the Windows project environment. Do not mark D2 closed until that target verification succeeds. No ReID model, checkpoint, NVIDIA video, dependency, or schema change was introduced.
+**Closed for the approved baseline-v1 correctness scope.** The baseline-v1 changes are on the separate branch `codex/baseline-v1-correctness`, based on the approved architecture branch. Scope covers candidate-widening union behavior, neutral unknown topology evidence, explicit camera relationship states, duplicate-edge validation, explicit timing-offset uncertainty, configurable widening horizon and time-decay, decision margins, and elapsed-seconds tracker retention. On the target Windows environment, Ruff reported **All checks passed** and the full repository test suite reported **43 passed**. The user supplied these target-machine results. No ReID model/checkpoint, NVIDIA video, dependency, environment, or schema change was introduced.
 
 ## 14. Milestones after the gates are approved
 
