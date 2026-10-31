@@ -166,4 +166,3 @@ class OSNetEncoder:
                 raise RuntimeError("normalized OSNet features are not finite")
             outputs.append(features.cpu())
         return torch.cat(outputs, dim=0)
-

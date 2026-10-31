@@ -39,4 +39,3 @@ def test_market_metrics_reject_bad_shapes_and_nonfinite_features():
         evaluate_market1501(
             np.array([[np.nan]]), [1], [1], np.array([[1.0]]), [1], [2]
         )
-

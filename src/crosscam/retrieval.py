@@ -81,4 +81,3 @@ def evaluate_market1501(
         result[f"rank_{k}"] = float(np.mean(np.asarray(first_hits) <= k))
         result[f"recall_at_{k}"] = recalls[k] / count
     return result
-

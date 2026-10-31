@@ -147,4 +147,3 @@ def test_rejects_invalid_expected_hash_and_batch_size(tmp_path):
         OSNetConfig(tmp_path / "unused", expected_sha256="not-a-hash")
     with pytest.raises(ValueError, match="batch_size"):
         OSNetConfig(tmp_path / "unused", batch_size=0)
-

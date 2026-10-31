@@ -39,4 +39,3 @@ switch.
 
 The local checkpoint remains outside Git. MSMT17 checkpoint data-use terms are
 not resolved here, so neither weights nor embeddings are redistributed.
-
