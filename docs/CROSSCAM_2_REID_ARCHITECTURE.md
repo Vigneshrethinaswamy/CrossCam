@@ -377,7 +377,7 @@ Until D1–D10 are resolved, the permitted work is architecture review, source/l
 | ID | Status | Current position |
 |---|---|---|
 | D1 Dataset | CLOSED | NVIDIA PhysicalAI Smart Spaces, pinned 2024 scene_002; cameras 12/14/17/19 for the initial four-view benchmark; synthetic-only validity and timestamp caveats documented |
-| D2 Baselines | APPROVED — BASELINE-V1 ONLY | Freeze baseline-v0; implement and test only the correctness fixes in Section 4 on a separate branch; no ReID, downloads, dependency changes, schema changes, or PR merge |
+| D2 Baselines | IN PROGRESS — BASELINE-V1 ONLY | baseline-v0 remains frozen; isolated correctness fixes and regression tests are being implemented on `codex/baseline-v1-correctness`; ReID, downloads, dependency/schema changes, and PR #2 merge remain blocked |
 | D3 Encoder | OPEN | OSNet family is a candidate, not selected |
 | D4 Tracklets | OPEN | Measure purity/fragmentation before locking rules |
 | D5 Timing/topology | OPEN | Explicit offsets, uncertainty, and overlap states required |
