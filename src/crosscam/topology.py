@@ -1,6 +1,7 @@
 """Camera topology and candidate-generation helpers."""
 from collections.abc import Iterable
 from dataclasses import dataclass
+import math
 
 from .models import CameraRelationship, Tracklet, Transition
 
@@ -76,7 +77,7 @@ class CameraTopology:
         *,
         widen_search: bool = False,
         widen_if_empty: bool | None = None,
-        max_search_seconds: float = 180.0,
+        max_search_seconds: float | None = None,
     ) -> list[Candidate]:
         """Return supported candidates and, when requested, a wider candidate union.
 
@@ -86,8 +87,10 @@ class CameraTopology:
         """
         if widen_if_empty is not None:
             widen_search = widen_if_empty
-        if max_search_seconds < 0:
-            raise ValueError("max_search_seconds must be non-negative")
+        if max_search_seconds is not None and (
+            not math.isfinite(max_search_seconds) or max_search_seconds < 0
+        ):
+            raise ValueError("max_search_seconds must be finite and non-negative")
 
         output: dict[str, Candidate] = {}
         for candidate in candidates:
@@ -131,7 +134,12 @@ class CameraTopology:
                 continue
 
             if relation == "known_overlap":
-                if intervals_overlap or elapsed is None or abs(elapsed) <= max_search_seconds:
+                if (
+                    intervals_overlap
+                    or elapsed is None
+                    or max_search_seconds is None
+                    or abs(elapsed) <= max_search_seconds
+                ):
                     output[candidate.tracklet_id] = Candidate(
                         candidate, None, elapsed, True, "known_overlap"
                     )
@@ -139,7 +147,11 @@ class CameraTopology:
 
             if not widen_search:
                 continue
-            if elapsed is not None and abs(elapsed) > max_search_seconds:
+            if (
+                elapsed is not None
+                and max_search_seconds is not None
+                and abs(elapsed) > max_search_seconds
+            ):
                 continue
 
             state = (
