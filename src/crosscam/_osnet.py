@@ -596,4 +596,3 @@ def osnet_ibn_x1_0(
     if pretrained:
         init_pretrained_weights(model, key='osnet_ibn_x1_0')
     return model
-
