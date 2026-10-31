@@ -2,6 +2,12 @@
 
 ## Recommendation: Market-1501, conditional on local research-only use
 
+No candidate is fully cleared for acquisition yet. Market-1501 is the leading
+conditional choice because its published readme includes explicit research-only
+and non-redistribution/non-commercial-use limits, but its historical author
+download page is no longer maintained. Confirm the exact source and applicable
+terms before download.
+
 Use the official Market-1501 query and bounding_box_test gallery for a
 cross-dataset image-retrieval sanity benchmark. OSNet x0.25 here was trained on
 MSMT17; Market-1501 test identities are a distinct benchmark split. Do not
@@ -52,9 +58,22 @@ then run the protocol without uploading images, crops, or embeddings.
 
 Alternatives considered: MSMT17 is unsuitable as an independent test because
 it is the checkpoint training domain and its distribution terms are
-restricted; DukeMTMC-reID is not recommended because it was withdrawn
-following privacy concerns; PRW has research-only conditions and a person-search
-task protocol; CUHK03 has restricted access/use conditions and split variants
-that complicate a lightweight first retrieval gate. Market-1501 is the most
-direct compact candidate, subject to confirming research-only use and an
-acceptable acquisition source.
+restricted. Ranked shortlist:
+
+1. **Market-1501 — leading conditional candidate.** Explicit research-only,
+   non-commercial, no-redistribution notice is available in a preserved readme
+   copy; an acceptable acquisition source and current terms still need
+   confirmation.
+2. **PRW — fallback.** Relevant multi-camera person-search imagery, but confirm
+   the original authors' access/use terms and adapt its person-search
+   annotations to a clean retrieval protocol before selecting it.
+3. **CUHK03 — fallback.** Established ReID benchmark; obtain and review the
+   specific distribution terms and choose one fixed split before use.
+4. **MSMT17 — exclude for this L0.** It is the encoder's training domain, so it
+   cannot provide an independent test; its access conditions also remain
+   unresolved here.
+
+The blocker for the leading candidate is confirmation of non-commercial
+research use under the exact archive/source terms plus separate user approval
+to acquire images. Dataset terms do not authorize committing or redistributing
+the images.
