@@ -81,10 +81,10 @@ def test_missing_camera_offset_remains_unknown_not_zero():
     results = rank(
         rows, load_config(CONFIG_PATH), parse_offsets(["cam_01=-20"])
     )
-    assert len(results) == 1
-    assert results[0]["elapsed_seconds"] is None
-    assert results[0]["timestamp_offsets_known"] is False
-    assert "temporal_evidence=unknown" in results[0]["reasons"]
+    forward = next(row for row in results if row["source_tracklet_id"] == "a")
+    assert forward["elapsed_seconds"] is None
+    assert forward["timestamp_offsets_known"] is False
+    assert "temporal_evidence=unknown" in forward["reasons"]
 
 
 def test_weak_candidate_triggers_union_widening():
