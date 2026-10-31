@@ -37,3 +37,11 @@ Measure both selective risk and coverage so that deferring every match cannot ap
 
 ## Runtime layout
 The camera-local tracker expires unmatched tracks using elapsed video seconds rather than a count of sampled frames. Callers must pass monotonic frame timestamps. Keep inference queues bounded. A slow camera should not grow an unbounded backlog. Record timestamps and dropped-frame counts. Keep heavy model inference separate from SQLite writes and UI refreshes.
+
+## OSNet x0.25 adapter status
+
+The user supplied a successful synthetic CUDA smoke-test report for the local OSNet x0.25 MSMT17 checkpoint: strict loading of 567 tensors, classifier shape (4101, 512), feature layer shape (512, 128), finite 512-D outputs, and batch-1/batch-4 latency and VRAM figures on the RTX 3050 Laptop GPU. These are user-reported target-machine measurements and were not rerun in this workspace.
+
+An independent inference adapter and synthetic unit tests now live on branch codex/osnet-adapter-benchmark, based on codex/baseline-v1-correctness. Upstream model code is pinned to KaiyangZhou/deep-person-reid commit f8cd150fdf77e8d9e1ed143b7f308c2c609ded50; its MIT notice is retained. The model-zoo transform convention is RGB 256×128, ImageNet mean/std, then explicit L2 normalization of the raw eval-mode feature vector. The target laptop's installed Torchreid source could not be inspected from this workspace; rerun preprocessing-parity and adapter checks there before closing that item.
+
+**D3 remains OPEN.** Source provenance and synthetic interface tests are implemented; retrieval quality on an authorized L0 benchmark, target-machine adapter parity, CPU execution, and data-use terms for the selected weights remain outstanding. No checkpoint, crop, embedding, or benchmark image has been added to Git.
