@@ -36,7 +36,7 @@ Place only authorized videos under data/, named with configured camera IDs (for 
 .\.venv\Scripts\python.exe -m streamlit run app.py
 ~~~
 
-The report is written to outputs/crosscam_report.md. The dashboard reads evaluation and diagnostic outputs. Use scripts/replay_video.py for an interactive single-video replay.
+The report is written to outputs/crosscam_report.md. The dashboard reads evaluation and diagnostic outputs. Track retention defaults to the former 10 sampled frames converted to seconds using the selected sample rate; override it with `--max-missed-seconds`. The deprecated `--max-missed-frames` flag remains available as a compatibility alias. Use scripts/replay_video.py for an interactive single-video replay.
 
 ## Experimental cross-camera candidate ranking
 After evaluating videos from configured cameras, derive HSV crop histograms and rank tracklet candidates on a shared timeline:
@@ -46,7 +46,7 @@ After evaluating videos from configured cameras, derive HSV crop histograms and 
 .\.venv\Scripts\python.exe scripts\associate_tracklets.py --tracklets outputs\tracklets.json --camera-offset cam_01=0 --camera-offset cam_02=30 --output outputs\associations.csv
 ~~~
 
-Set offsets from the cameras' recording start times; do not infer them from the outputs. This uses simple color histograms, not a learned ReID model. Candidate links and accept/defer/reject labels are heuristic and uncalibrated.
+Set offsets from trusted camera recording start times; do not infer them from tracking outputs. Supply an offset for every camera whose timestamps you want compared on a shared timeline. Cameras without an explicit offset are marked temporally unknown; their local time origins are never silently assumed to be synchronized. Weak topology candidates trigger a widened search that preserves existing candidates and adds alternatives within the configured horizon. Decision margins can defer ambiguous top-ranked links. This uses simple color histograms, not a learned ReID model. Candidate links and accept/defer/reject labels remain heuristic and uncalibrated.
 
 The local tracker uses camera-local IDs and bounding-box overlap only. IDs can switch when people cross, disappear, or change appearance.
 

@@ -22,10 +22,12 @@
 - **Dashboard:** shows tracks, tentative links, timelines, and uncertainty.
 
 ## Camera graph
-Cameras are nodes. Directed edges represent plausible transitions and expected travel-time intervals. The graph is a candidate-prioritization mechanism, not a hard constraint: people can take unexpected routes or a camera may miss a track.
+Cameras are nodes. Directed edges represent plausible transitions and expected travel-time intervals. Explicit camera-pair relationships may be known-overlap, known-non-overlap, or unknown. An absent transition edge is not proof of non-overlap. Same-time tracklets may be excluded only when offsets are trusted and the pair is known non-overlapping. Duplicate directed edges and duplicate undirected relationships are rejected rather than overwritten.
 
 ## Association and uncertainty
-The starter implementation combines a simple appearance similarity, time compatibility, and topology prior. Its score is a ranking heuristic. It must not be displayed as a probability until calibrated on held-out data. Thresholds must be selected using validation data and reported alongside coverage.
+The starter implementation combines simple appearance similarity, elapsed time when both camera offsets are explicit, and a topology prior only when one is explicitly configured. Missing temporal or topology evidence is represented as unknown and receives a neutral contribution; it is not silently converted to zero offset or maximal prior. Its score is a ranking heuristic, not a probability. It must not be displayed as a probability until calibrated on held-out data. Thresholds and decision margins must be selected using validation data and reported alongside coverage.
+
+When the best topology-supported candidate is below the configured weak-score threshold, candidate generation widens and returns the union of topology-supported and additional eligible candidates. Widened candidates do not inherit a positive topology prior. The widening horizon and time-decay scale are explicit configuration values.
 
 - **Accept:** score and margin satisfy validation-selected criteria.
 - **Defer:** evidence is ambiguous; wait for more observations or request wider candidate search.
@@ -34,4 +36,4 @@ The starter implementation combines a simple appearance similarity, time compati
 Measure both selective risk and coverage so that deferring every match cannot appear successful.
 
 ## Runtime layout
-Keep inference queues bounded. A slow camera should not grow an unbounded backlog. Record timestamps and dropped-frame counts. Keep heavy model inference separate from SQLite writes and UI refreshes.
+The camera-local tracker expires unmatched tracks using elapsed video seconds rather than a count of sampled frames. Callers must pass monotonic frame timestamps. Keep inference queues bounded. A slow camera should not grow an unbounded backlog. Record timestamps and dropped-frame counts. Keep heavy model inference separate from SQLite writes and UI refreshes.

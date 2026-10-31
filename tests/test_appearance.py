@@ -13,6 +13,17 @@ from scripts.associate_tracklets import parse_offsets, rank
 CONFIG_PATH = Path(__file__).resolve().parents[1] / "configs" / "default.yaml"
 
 
+def rows_for_association():
+    return [
+        {"tracklet_id": "a", "camera_id": "cam_01", "start_time": 0,
+         "end_time": 5, "embedding": [1.0, 0.0]},
+        {"tracklet_id": "b", "camera_id": "cam_02", "start_time": 10,
+         "end_time": 12, "embedding": [0.0, 1.0]},
+        {"tracklet_id": "c", "camera_id": "cam_03", "start_time": 14,
+         "end_time": 16, "embedding": [0.0, 1.0]},
+    ]
+
+
 def test_hsv_histogram_is_normalized_and_deterministic():
     image = np.zeros((20, 10, 3), dtype=np.uint8)
     image[:, :, 2] = 255
@@ -53,22 +64,44 @@ def test_orthogonal_histograms_receive_zero_appearance_score():
     assert appearance_reason == "appearance_component=0.000"
 
 
-def test_rank_applies_relative_offsets_and_keeps_heuristic_decisions():
-    rows = [
-        {"tracklet_id": "cam_01:1", "camera_id": "cam_01", "start_time": 0,
-         "end_time": 5, "embedding": [1.0, 0.0]},
-        {"tracklet_id": "cam_02:2", "camera_id": "cam_02", "start_time": 10,
-         "end_time": 12, "embedding": [1.0, 0.0]},
-    ]
-    results = rank(rows, load_config(CONFIG_PATH), parse_offsets(["cam_01=-20"]))
+def test_rank_uses_only_explicit_camera_offsets():
+    rows = rows_for_association()[:2]
+    config = load_config(CONFIG_PATH)
+    results = rank(
+        rows, config, parse_offsets(["cam_01=-20", "cam_02=0"])
+    )
     assert len(results) == 1
     assert results[0]["elapsed_seconds"] == 25
-    assert results[0]["decision"] == "accept"
-    assert results[0]["via_topology"]
+    assert results[0]["timestamp_offsets_known"] is True
+    assert results[0]["via_topology"] is True
 
 
-def test_offsets_reject_non_finite_and_malformed_values():
+def test_missing_camera_offset_remains_unknown_not_zero():
+    rows = rows_for_association()[:2]
+    results = rank(
+        rows, load_config(CONFIG_PATH), parse_offsets(["cam_01=-20"])
+    )
+    forward = next(row for row in results if row["source_tracklet_id"] == "a")
+    assert forward["elapsed_seconds"] is None
+    assert forward["timestamp_offsets_known"] is False
+    assert "temporal_evidence=unknown" in forward["reasons"]
+
+
+def test_weak_candidate_triggers_union_widening():
+    results = rank(
+        rows_for_association(),
+        load_config(CONFIG_PATH),
+        parse_offsets(["cam_01=0", "cam_02=0", "cam_03=0"]),
+    )
+    source_results = [row for row in results if row["source_tracklet_id"] == "a"]
+    assert {row["candidate_tracklet_id"] for row in source_results} == {"b", "c"}
+    assert all(row["widened_search_used"] for row in source_results)
+
+
+def test_offsets_reject_non_finite_malformed_and_duplicate_values():
     with pytest.raises(ValueError):
         parse_offsets(["cam_01=nan"])
     with pytest.raises(ValueError):
         parse_offsets(["cam_01"])
+    with pytest.raises(ValueError, match="Duplicate"):
+        parse_offsets(["cam_01=0", "cam_01=1"])

@@ -53,7 +53,7 @@ st.json({
     "sample_target_fps": summary.get("sample_target_fps"),
     "confidence_threshold": summary.get("confidence_threshold"),
     "iou_threshold": summary.get("iou_threshold"),
-    "max_missed_frames": summary.get("max_missed_frames"),
+    "max_missed_seconds": summary.get("max_missed_seconds"),
 })
 
 if results:

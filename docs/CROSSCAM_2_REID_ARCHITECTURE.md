@@ -356,6 +356,10 @@ The pinned Hugging Face dataset card displays **Creative Commons Attribution 4.0
 ### D1 status
 
 **Closed for the initial benchmark choice:** scene_002 at the pinned revision, using cameras 12, 14, 17, and 19 for the first controlled four-camera study. Annotation schema, identity coverage, calibration mapping, dataset synchronization claim, file hash, size, and displayed license have been checked. Video decoding/PTS validation remains a preflight item for after approval to download the selected streams; no videos or model checkpoints have been downloaded.
+### D2 implementation note (2026-10-31)
+
+Baseline-v1 correctness code has been authored on the separate branch `codex/baseline-v1-correctness`, based on the approved architecture branch. Scope covers candidate-widening union behavior, neutral unknown topology evidence, explicit camera relationship states, duplicate-edge validation, explicit timing-offset uncertainty, configurable widening horizon and time-decay, decision margins, and elapsed-seconds tracker retention. The targeted isolated regression harness reports 35 passing tests; this is not the complete repository suite and does not substitute for running pytest and Ruff in the Windows project environment. Do not mark D2 closed until that target verification succeeds. No ReID model, checkpoint, NVIDIA video, dependency, or schema change was introduced.
+
 ## 14. Milestones after the gates are approved
 
 - **A0 — Freeze and correct baseline:** capture baseline-v0; specify baseline-v1; fix and test candidate generation, overlap, topology prior, timing, and config defects.
@@ -377,7 +381,7 @@ Until D1–D10 are resolved, the permitted work is architecture review, source/l
 | ID | Status | Current position |
 |---|---|---|
 | D1 Dataset | CLOSED | NVIDIA PhysicalAI Smart Spaces, pinned 2024 scene_002; cameras 12/14/17/19 for the initial four-view benchmark; synthetic-only validity and timestamp caveats documented |
-| D2 Baselines | APPROVED — BASELINE-V1 ONLY | Freeze baseline-v0; implement and test only the correctness fixes in Section 4 on a separate branch; no ReID, downloads, dependency changes, schema changes, or PR merge |
+| D2 Baselines | CODED — TARGET VERIFICATION PENDING | baseline-v0 code remains at MVP revision `2cfd0ea55fbc594eb580c3b044c3e8820bd66db3`; baseline-v1 correctness changes and regression tests are on `codex/baseline-v1-correctness`; isolated harness: 35 passed; full repository pytest/Ruff on the Windows target remains pending; ReID, downloads, dependency/schema changes, and PR #2 merge remain blocked |
 | D3 Encoder | OPEN | OSNet family is a candidate, not selected |
 | D4 Tracklets | OPEN | Measure purity/fragmentation before locking rules |
 | D5 Timing/topology | OPEN | Explicit offsets, uncertainty, and overlap states required |
