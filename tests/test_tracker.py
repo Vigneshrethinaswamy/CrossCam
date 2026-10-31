@@ -33,7 +33,6 @@ def test_tracker_expiry_is_time_based_not_sample_count_based():
     )[0]
     assert retained.track_id == first.track_id
 
-    tracker.update([], timestamp_seconds=4.0)
     expired = tracker.update(
         [Detection((0, 0, 10, 10), 0.9)], timestamp_seconds=4.1
     )[0]
