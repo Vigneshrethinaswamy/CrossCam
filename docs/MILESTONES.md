@@ -25,6 +25,7 @@
 - [ ] Validate camera offsets and candidate behavior on synchronized camera videos.
 - [ ] Validate a pretrained person ReID encoder and its weights before replacing the HSV descriptor.
 - [x] Record the target-laptop OSNet x0.25 synthetic CUDA smoke-test results supplied by the user; adapter is implemented separately, with benchmark retrieval quality still pending.
+- [x] Add a local Market-1501 retrieval runner and protocol tests; execution remains gated on source/terms confirmation and image-download approval.
 - [ ] Persist reviewed global identity hypotheses with human confirmation.
 
 ## M4 — Reliability evaluation

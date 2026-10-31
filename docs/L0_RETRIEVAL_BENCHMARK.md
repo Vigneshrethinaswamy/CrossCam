@@ -37,8 +37,9 @@ for the published usage notice and split inventory.
 3. Rank gallery images by cosine similarity. Exclude gallery images with the
    same identity and same camera as the query; ignore junk IDs (-1/background)
    and the dataset's junk matches according to the official protocol.
-4. Report CMC Rank-1/5/10, mean average precision, and recall@1/5/10. Include
-   valid-query count and identities retained after junk filtering.
+4. Report CMC Rank-1/5/10, mean average precision, and recall@1/5/10 (average
+   fraction of eligible cross-camera positives recovered per valid query).
+   Include valid-query count.
 5. Do not adjust thresholds or the model using these test results. Report
    descriptive results only; this fixed test split does not validate CrossCam
    tracklet aggregation or cross-camera association.
@@ -47,6 +48,17 @@ The model preprocessing is sourced from the [upstream Torchreid transforms](http
 ImageNet mean (0.485, 0.456, 0.406) and standard deviation
 (0.229, 0.224, 0.225). Reports must identify the checkpoint hash and adapter
 source commit.
+
+The local runner is scripts/evaluate_market1501.py. After the exact archive
+source and terms are confirmed and image acquisition is separately approved,
+run it with explicit local paths, for example:
+
+    python scripts/evaluate_market1501.py --dataset-root C:\CrossCamData\datasets\Market-1501-v15.09.15 --checkpoint C:\CrossCamData\models\osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth --device auto
+
+The runner requires the dataset readme to contain research-only,
+non-commercial, and non-distribution wording. It processes only query/ and
+bounding_box_test/ and writes metrics plus model metadata to stdout. It does
+not save or upload crops or embeddings.
 
 ## Status and next gate
 
