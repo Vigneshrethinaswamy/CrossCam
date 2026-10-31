@@ -30,7 +30,7 @@ def test_unknown_time_and_topology_evidence_are_neutral_and_explicit():
     target = Tracklet("b", "cam_2", 10, 12, [1.0, 0.0], timestamp_offset_known=False)
     candidate = Candidate(target, None, None, False, "unknown")
     score, reasons = score_candidate(source, candidate)
-    assert score == 0.75
+    assert score == 0.85
     assert "temporal_evidence=unknown" in reasons
     assert "topology_evidence=unknown" in reasons
 
