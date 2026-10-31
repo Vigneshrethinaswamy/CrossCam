@@ -34,8 +34,8 @@ def score_candidate(
         else 0.0
     )
     elapsed_score = (
-        math.exp(-max(0.0, candidate.elapsed_seconds) / time_decay_seconds)
-        if candidate.elapsed_seconds is not None
+        math.exp(-candidate.elapsed_seconds / time_decay_seconds)
+        if candidate.elapsed_seconds is not None and candidate.elapsed_seconds >= 0
         else 0.5
     )
     # Missing topology is neutral, not a fabricated maximal positive prior.
@@ -50,7 +50,11 @@ def score_candidate(
         (
             f"time_component={elapsed_score:.3f}"
             if candidate.elapsed_seconds is not None
-            else "temporal_evidence=unknown"
+            else (
+                "temporal_evidence=overlap_neutral"
+                if candidate.elapsed_seconds is not None
+                else "temporal_evidence=unknown"
+            )
         ),
         (
             f"topology_prior={candidate.topology_prior:.3f}"
