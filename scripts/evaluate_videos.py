@@ -3,6 +3,7 @@
 import argparse
 import csv
 import json
+import math
 import sys
 import time
 from pathlib import Path
@@ -18,17 +19,8 @@ from crosscam.video import FrameSampler, VideoSource
 
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv"}
 CSV_FIELDS = [
-    "video",
-    "camera_id",
-    "frame_index",
-    "timestamp_seconds",
-    "detection_index",
-    "track_id",
-    "confidence",
-    "x1",
-    "y1",
-    "x2",
-    "y2",
+    "video", "camera_id", "frame_index", "timestamp_seconds", "detection_index",
+    "track_id", "confidence", "x1", "y1", "x2", "y2",
 ]
 
 
@@ -40,21 +32,52 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
     parser.add_argument("--confidence", type=float, default=0.45)
     parser.add_argument("--iou-threshold", type=float, default=0.30)
-    parser.add_argument("--max-missed-frames", type=int, default=10)
+    parser.add_argument(
+        "--max-missed-seconds", type=float, default=None,
+        help="Maximum video-time gap before an unmatched local track expires",
+    )
+    parser.add_argument(
+        "--max-missed-frames", type=int, default=None,
+        help="Deprecated compatibility alias; converted to seconds using --sample-fps",
+    )
     parser.add_argument("--max-videos", type=int, default=0, help="Optional limit; 0 means all")
     return parser.parse_args()
 
 
+def resolve_retention_seconds(
+    sample_fps: float,
+    *,
+    max_missed_seconds: float | None = None,
+    max_missed_frames: int | None = None,
+) -> float:
+    if not math.isfinite(sample_fps) or sample_fps <= 0:
+        raise ValueError("sample_fps must be greater than zero")
+    if max_missed_seconds is not None and max_missed_frames is not None:
+        raise ValueError("Specify only one of max_missed_seconds or max_missed_frames")
+    if max_missed_frames is not None:
+        if max_missed_frames < 0:
+            raise ValueError("max_missed_frames must be non-negative")
+        return max_missed_frames / sample_fps
+    # Preserve the former default of ten sampled frames, converted by cadence.
+    seconds = 10.0 / sample_fps if max_missed_seconds is None else max_missed_seconds
+    if not math.isfinite(seconds) or seconds < 0:
+        raise ValueError("max_missed_seconds must be finite and non-negative")
+    return float(seconds)
+
+
 def main() -> int:
     args = parse_args()
-    if args.sample_fps <= 0:
-        print("--sample-fps must be greater than zero", file=sys.stderr)
+    try:
+        args.max_missed_seconds = resolve_retention_seconds(
+            args.sample_fps,
+            max_missed_seconds=args.max_missed_seconds,
+            max_missed_frames=args.max_missed_frames,
+        )
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
         return 2
     if not 0 <= args.iou_threshold <= 1:
         print("--iou-threshold must be between 0 and 1", file=sys.stderr)
-        return 2
-    if args.max_missed_frames < 0:
-        print("--max-missed-frames must be non-negative", file=sys.stderr)
         return 2
     if args.max_videos < 0:
         print("--max-videos must be non-negative", file=sys.stderr)
@@ -84,7 +107,7 @@ def main() -> int:
         csv_path = args.output_dir / f"{video_path.stem}_tracks.csv"
         tracker = IoUTracker(
             iou_threshold=args.iou_threshold,
-            max_missed_frames=args.max_missed_frames,
+            max_missed_seconds=args.max_missed_seconds,
         )
         sampler = FrameSampler(args.sample_fps)
         cap = cv2.VideoCapture(str(video_path))
@@ -119,7 +142,9 @@ def main() -> int:
                 if not sampler.should_sample(packet):
                     continue
                 detections = detector.predict(packet.frame_bgr)
-                tracked = tracker.update(detections)
+                tracked = tracker.update(
+                    detections, timestamp_seconds=packet.timestamp_seconds
+                )
                 sampled_frames += 1
                 total_detections += len(detections)
                 peak_detections = max(peak_detections, len(detections))
@@ -135,10 +160,8 @@ def main() -> int:
                         "detection_index": index,
                         "track_id": person.track_id,
                         "confidence": f"{person.detection_score:.6f}",
-                        "x1": f"{x1:.2f}",
-                        "y1": f"{y1:.2f}",
-                        "x2": f"{x2:.2f}",
-                        "y2": f"{y2:.2f}",
+                        "x1": f"{x1:.2f}", "y1": f"{y1:.2f}",
+                        "x2": f"{x2:.2f}", "y2": f"{y2:.2f}",
                     })
 
         elapsed = time.perf_counter() - elapsed_start
@@ -156,6 +179,7 @@ def main() -> int:
             "source_frames": source_frames,
             "duration_seconds": round(duration, 3),
             "sample_target_fps": args.sample_fps,
+            "max_missed_seconds": args.max_missed_seconds,
             "sampled_frames": sampled_frames,
             "total_person_detections": total_detections,
             "peak_detections_in_sampled_frame": peak_detections,
@@ -179,7 +203,7 @@ def main() -> int:
         "device": str(detector.device),
         "confidence_threshold": args.confidence,
         "iou_threshold": args.iou_threshold,
-        "max_missed_frames": args.max_missed_frames,
+        "max_missed_seconds": args.max_missed_seconds,
         "sample_target_fps": args.sample_fps,
         "videos_processed": len(summaries),
         "results": summaries,

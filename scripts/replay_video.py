@@ -1,5 +1,6 @@
 """Replay a local video through sampled person detection and camera-local tracking."""
 import argparse
+import math
 import sys
 from pathlib import Path
 
@@ -21,6 +22,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", choices=("auto", "cuda", "cpu"), default="auto")
     parser.add_argument("--confidence", type=float, default=0.45, help="Person detection threshold")
     parser.add_argument("--display", action="store_true", help="Display sampled frames with track IDs")
+    parser.add_argument(
+        "--max-missed-seconds", type=float, default=2.0,
+        help="Maximum video-time gap before an unmatched local track expires",
+    )
     return parser.parse_args()
 
 
@@ -29,12 +34,15 @@ def main() -> int:
     if not args.video.is_file():
         print(f"Video file not found: {args.video}", file=sys.stderr)
         return 2
-    if args.sample_fps <= 0:
+    if not math.isfinite(args.sample_fps) or args.sample_fps <= 0:
         print("--sample-fps must be greater than zero", file=sys.stderr)
+        return 2
+    if not math.isfinite(args.max_missed_seconds) or args.max_missed_seconds < 0:
+        print("--max-missed-seconds must be finite and non-negative", file=sys.stderr)
         return 2
 
     detector = PersonDetector(args.device, args.confidence)
-    tracker = IoUTracker()
+    tracker = IoUTracker(max_missed_seconds=args.max_missed_seconds)
     sampler = FrameSampler(args.sample_fps)
     processed = 0
     total_detections = 0
@@ -50,7 +58,9 @@ def main() -> int:
             if not sampler.should_sample(packet):
                 continue
             detections = detector.predict(packet.frame_bgr)
-            tracked = tracker.update(detections)
+            tracked = tracker.update(
+                detections, timestamp_seconds=packet.timestamp_seconds
+            )
             processed += 1
             total_detections += len(detections)
             peak_tracks = max(peak_tracks, len({person.track_id for person in tracked}))
