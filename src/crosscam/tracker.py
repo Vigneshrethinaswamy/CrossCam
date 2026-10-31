@@ -1,5 +1,6 @@
 """Lightweight IoU-based local tracker; IDs are local to one camera."""
 from dataclasses import dataclass
+import math
 
 from .detection import Detection
 
@@ -8,7 +9,7 @@ from .detection import Detection
 class _Track:
     track_id: int
     box: tuple[float, float, float, float]
-    missed_frames: int = 0
+    last_seen_seconds: float
 
 
 @dataclass(frozen=True)
@@ -34,19 +35,34 @@ def intersection_over_union(
 
 
 class IoUTracker:
-    """Greedy IoU matching with bounded track retention; no appearance ReID yet."""
+    """Greedy IoU matching with retention measured in video seconds."""
 
-    def __init__(self, iou_threshold: float = 0.30, max_missed_frames: int = 10) -> None:
+    def __init__(self, iou_threshold: float = 0.30, max_missed_seconds: float = 2.0) -> None:
         if not 0 <= iou_threshold <= 1:
             raise ValueError("iou_threshold must be between 0 and 1")
-        if max_missed_frames < 0:
-            raise ValueError("max_missed_frames must be non-negative")
+        if not math.isfinite(max_missed_seconds) or max_missed_seconds < 0:
+            raise ValueError("max_missed_seconds must be finite and non-negative")
         self.iou_threshold = iou_threshold
-        self.max_missed_frames = max_missed_frames
+        self.max_missed_seconds = float(max_missed_seconds)
         self._tracks: dict[int, _Track] = {}
         self._next_id = 1
+        self._last_update_seconds: float | None = None
 
-    def update(self, detections: list[Detection]) -> list[TrackedPerson]:
+    def update(
+        self,
+        detections: list[Detection],
+        *,
+        timestamp_seconds: float,
+    ) -> list[TrackedPerson]:
+        if not math.isfinite(timestamp_seconds):
+            raise ValueError("timestamp_seconds must be finite")
+        if (
+            self._last_update_seconds is not None
+            and timestamp_seconds < self._last_update_seconds
+        ):
+            raise ValueError("tracker timestamps must be monotonic non-decreasing")
+        self._last_update_seconds = timestamp_seconds
+
         pairs = sorted(
             (
                 (intersection_over_union(track.box, detection.box), track_id, detection_index)
@@ -70,19 +86,20 @@ class IoUTracker:
 
         for track_id, track in list(self._tracks.items()):
             if track_id not in matched_tracks:
-                track.missed_frames += 1
-                if track.missed_frames > self.max_missed_frames:
+                if timestamp_seconds - track.last_seen_seconds > self.max_missed_seconds:
                     del self._tracks[track_id]
 
         for detection_index, detection in enumerate(detections):
             if detection_index in matched_detections:
                 track_id = assigned[detection_index]
                 self._tracks[track_id].box = detection.box
-                self._tracks[track_id].missed_frames = 0
+                self._tracks[track_id].last_seen_seconds = timestamp_seconds
             else:
                 track_id = self._next_id
                 self._next_id += 1
-                self._tracks[track_id] = _Track(track_id, detection.box)
+                self._tracks[track_id] = _Track(
+                    track_id, detection.box, timestamp_seconds
+                )
                 assigned[detection_index] = track_id
 
         return [
