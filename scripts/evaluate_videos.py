@@ -58,7 +58,8 @@ def resolve_retention_seconds(
         if max_missed_frames < 0:
             raise ValueError("max_missed_frames must be non-negative")
         return max_missed_frames / sample_fps
-    seconds = 2.0 if max_missed_seconds is None else max_missed_seconds
+    # Preserve the former default of ten sampled frames, converted by cadence.
+    seconds = 10.0 / sample_fps if max_missed_seconds is None else max_missed_seconds
     if not math.isfinite(seconds) or seconds < 0:
         raise ValueError("max_missed_seconds must be finite and non-negative")
     return float(seconds)
