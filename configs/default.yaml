@@ -9,7 +9,6 @@ runtime:
   frame_width: 640
   device: auto
   association_device: cpu
-  max_missed_seconds: 2.0
 
 association:
   accept_threshold: 0.78
