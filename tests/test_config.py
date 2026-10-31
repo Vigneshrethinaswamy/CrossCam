@@ -40,3 +40,12 @@ def test_unknown_relationship_state_is_rejected():
     ]
     with pytest.raises(ValueError, match="Invalid camera relationship"):
         validate_config(broken)
+
+
+
+def test_widening_horizon_is_required_in_config():
+    config = load_config(CONFIG_PATH)
+    broken = deepcopy(config)
+    del broken["association"]["widen_search_horizon_seconds"]
+    with pytest.raises(ValueError, match="widen_search_horizon_seconds is required"):
+        validate_config(broken)
