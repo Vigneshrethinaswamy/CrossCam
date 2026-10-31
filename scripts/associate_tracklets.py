@@ -66,7 +66,7 @@ def rank(tracklet_rows: list[dict], config: dict, offsets: dict[str, float]) -> 
     settings = config.get("association", {})
     widen_enabled = bool(settings.get("widen_search_if_weak", True))
     widen_threshold = float(settings.get("widen_if_best_score_below", 0.78))
-    horizon = float(settings.get("widen_search_horizon_seconds", 180.0))
+    horizon = float(settings["widen_search_horizon_seconds"])
     time_decay = float(settings.get("time_decay_seconds", 90.0))
     accept = float(settings.get("accept_threshold", 0.78))
     defer = float(settings.get("defer_threshold", 0.55))
