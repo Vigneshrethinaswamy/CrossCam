@@ -26,7 +26,7 @@ def test_market_metrics_compute_cmc_and_average_precision():
     result = evaluate_market1501(q, [1], [1], g, [2, 1, 1], [2, 2, 3], ks=(1, 2, 5))
     assert result["rank_1"] == 0.0
     assert result["rank_2"] == 1.0
-    assert result["mean_average_precision"] == pytest.approx(0.5)
+    assert result["mean_average_precision"] == pytest.approx(7 / 12)
     assert result["recall_at_2"] == 0.5
 
 
