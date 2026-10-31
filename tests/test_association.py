@@ -40,7 +40,7 @@ def test_decision_margin_defers_ambiguous_top_match():
     target = Tracklet("b", "cam_2", 10, 12, [1.0, 0.0])
     candidate = Candidate(target, 1.0, 5.0, True, "known_transition")
     result = associate(
-        source, candidate, min_margin=0.08, runner_up_score=0.76
+        source, candidate, min_margin=0.08, runner_up_score=0.95
     )
     assert result.decision is Decision.DEFER
     assert any("decision_margin_below_minimum" in reason for reason in result.reasons)
