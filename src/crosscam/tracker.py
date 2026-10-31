@@ -63,6 +63,12 @@ class IoUTracker:
             raise ValueError("tracker timestamps must be monotonic non-decreasing")
         self._last_update_seconds = timestamp_seconds
 
+        # Expire stale tracks before matching so a late reappearance cannot
+        # revive an ID after the configured time horizon.
+        for track_id, track in list(self._tracks.items()):
+            if timestamp_seconds - track.last_seen_seconds > self.max_missed_seconds:
+                del self._tracks[track_id]
+
         pairs = sorted(
             (
                 (intersection_over_union(track.box, detection.box), track_id, detection_index)
