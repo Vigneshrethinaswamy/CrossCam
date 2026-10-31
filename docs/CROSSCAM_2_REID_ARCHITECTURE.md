@@ -381,7 +381,7 @@ Until D1–D10 are resolved, the permitted work is architecture review, source/l
 | ID | Status | Current position |
 |---|---|---|
 | D1 Dataset | CLOSED | NVIDIA PhysicalAI Smart Spaces, pinned 2024 scene_002; cameras 12/14/17/19 for the initial four-view benchmark; synthetic-only validity and timestamp caveats documented |
-| D2 Baselines | CODED — TARGET VERIFICATION PENDING | baseline-v0 code remains at MVP revision `2cfd0ea55fbc594eb580c3b044c3e8820bd66db3`; baseline-v1 correctness changes and regression tests are on `codex/baseline-v1-correctness`; isolated harness: 35 passed; full repository pytest/Ruff on the Windows target remains pending; ReID, downloads, dependency/schema changes, and PR #2 merge remain blocked |
+| D2 Baselines | CLOSED — BASELINE-V1 CORRECTNESS SCOPE | baseline-v0 code remains at MVP revision `2cfd0ea55fbc594eb580c3b044c3e8820bd66db3`; baseline-v1 correctness changes and regression tests are on `codex/baseline-v1-correctness`; target Windows verification reported Ruff clean and 43 repository tests passed. ReID, downloads, dependency/schema changes, and PR #2 merge remain gated |
 | D3 Encoder | OPEN | OSNet family is a candidate, not selected |
 | D4 Tracklets | OPEN | Measure purity/fragmentation before locking rules |
 | D5 Timing/topology | OPEN | Explicit offsets, uncertainty, and overlap states required |
