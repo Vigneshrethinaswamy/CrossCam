@@ -120,7 +120,7 @@ class CameraTopology:
                 continue
 
             if relation == "known_overlap":
-                if elapsed is None or abs(elapsed) <= max_search_seconds:
+                if intervals_overlap or elapsed is None or abs(elapsed) <= max_search_seconds:
                     output[candidate.tracklet_id] = Candidate(
                         candidate, None, elapsed, True, "known_overlap"
                     )
