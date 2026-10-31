@@ -33,23 +33,50 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--confidence", type=float, default=0.45)
     parser.add_argument("--iou-threshold", type=float, default=0.30)
     parser.add_argument(
-        "--max-missed-seconds", type=float, default=2.0,
+        "--max-missed-seconds", type=float, default=None,
         help="Maximum video-time gap before an unmatched local track expires",
+    )
+    parser.add_argument(
+        "--max-missed-frames", type=int, default=None,
+        help="Deprecated compatibility alias; converted to seconds using --sample-fps",
     )
     parser.add_argument("--max-videos", type=int, default=0, help="Optional limit; 0 means all")
     return parser.parse_args()
 
 
+def resolve_retention_seconds(
+    sample_fps: float,
+    *,
+    max_missed_seconds: float | None = None,
+    max_missed_frames: int | None = None,
+) -> float:
+    if not math.isfinite(sample_fps) or sample_fps <= 0:
+        raise ValueError("sample_fps must be greater than zero")
+    if max_missed_seconds is not None and max_missed_frames is not None:
+        raise ValueError("Specify only one of max_missed_seconds or max_missed_frames")
+    if max_missed_frames is not None:
+        if max_missed_frames < 0:
+            raise ValueError("max_missed_frames must be non-negative")
+        return max_missed_frames / sample_fps
+    seconds = 2.0 if max_missed_seconds is None else max_missed_seconds
+    if not math.isfinite(seconds) or seconds < 0:
+        raise ValueError("max_missed_seconds must be finite and non-negative")
+    return float(seconds)
+
+
 def main() -> int:
     args = parse_args()
-    if not math.isfinite(args.sample_fps) or args.sample_fps <= 0:
-        print("--sample-fps must be greater than zero", file=sys.stderr)
+    try:
+        args.max_missed_seconds = resolve_retention_seconds(
+            args.sample_fps,
+            max_missed_seconds=args.max_missed_seconds,
+            max_missed_frames=args.max_missed_frames,
+        )
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
         return 2
     if not 0 <= args.iou_threshold <= 1:
         print("--iou-threshold must be between 0 and 1", file=sys.stderr)
-        return 2
-    if not math.isfinite(args.max_missed_seconds) or args.max_missed_seconds < 0:
-        print("--max-missed-seconds must be finite and non-negative", file=sys.stderr)
         return 2
     if args.max_videos < 0:
         print("--max-videos must be non-negative", file=sys.stderr)
