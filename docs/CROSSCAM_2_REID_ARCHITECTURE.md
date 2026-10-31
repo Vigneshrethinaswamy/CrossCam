@@ -324,47 +324,38 @@ The following are deliberately open. They must be recorded in a decision log wit
 | D10 — Environment | Approve dependency changes and the exact reproducible environment plan | Before/after package diff and rollback plan |
 
 
-## D1 — Dataset decision: NVIDIA PhysicalAI Smart Spaces (provisional selection)
+## D1 — Dataset decision: NVIDIA PhysicalAI Smart Spaces (approved for the initial benchmark)
 
-### Selected candidate
+### Selected dataset and pinned revision
 
-**Primary evaluation dataset:** NVIDIA PhysicalAI Smart Spaces, `MTMC_Tracking_2024`, `train/scene_002`.
+**Initial labeled multi-camera benchmark (L1):** NVIDIA PhysicalAI Smart Spaces, `MTMC_Tracking_2024/train/scene_002`, pinned to dataset revision `483cf8a1ad0bc1ea871628268e2fc39d142438ad`.
 
-Official dataset: https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces
-Scene directory: https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces/tree/main/MTMC_Tracking_2024/train/scene_002
+- [Official dataset card](https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces)
+- [Pinned scene directory](https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces/tree/483cf8a1ad0bc1ea871628268e2fc39d142438ad/MTMC_Tracking_2024/train/scene_002)
+- [Pinned ground truth](https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces/blob/483cf8a1ad0bc1ea871628268e2fc39d142438ad/MTMC_Tracking_2024/train/scene_002/ground_truth.txt)
+- [Pinned shared calibration](https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces/blob/483cf8a1ad0bc1ea871628268e2fc39d142438ad/MTMC_Tracking_2024/train/scene_002/calibration_2025_format.json)
 
-The official Hugging Face page lists the repository under **CC BY 4.0**. The scene listing shows a total of about **2.31 GB**, camera folders `camera_0011` through `camera_0019`, `ground_truth.txt` at about **84.1 MB**, and `ground_truth_2025_format.json` at about **179 MB**. Each camera folder has a video and calibration file; the observed camera_0019 video is about **246 MB**. These figures are listings, not a guarantee that every camera file is the same size.
+The dataset card identifies the data as synthetically generated and states that the multi-camera dataset is time-synchronized. Its 2024 annotation schema is camera ID, global object ID, zero-based frame index, 2D box `xmin ymin width height`, and projected world `x y`. The completed local audit found 1,932,341 valid observations, nine cameras (11–19), and 23 global IDs; all 23 IDs appear in every camera. No malformed rows or invalid/non-positive boxes were found. The downloaded ground truth is 80.18 MB and its SHA-256 matches the pinned source: `e7039be4ff3d3fa1b499dd3b39d42081b5affe0fe7e1df0440e6a457893e2f3e`.
 
-### Why this candidate fits
+### Calibration schema and camera mapping
 
-- Synthetic multi-camera video, avoiding identifiable real-person footage in the initial benchmark.
-- Ground truth contains a consistent object ID across cameras, frame index, 2D bounding boxes, and world coordinates.
-- Per-camera calibration is provided.
-- A small selected subset should be feasible without downloading the full 216.95 GB 2024 release.
+The shared `calibration_2025_format.json` is 23,584 bytes (source SHA-256 `ffd0fbc4a0c6015f85520501109f83193d396f0831a16a5395003187d1a70274`). It uses `calibrationType: cartesian` and a `sensors` array with entries `type: camera`; sensor IDs `Camera_0011`–`Camera_0019` map by numeric suffix to annotation IDs 11–19 and folders `camera_0011`–`camera_0019`. Each entry reports 30 FPS and 1920×1080 dimensions (as string-valued attributes), plus intrinsic, extrinsic, camera, and homography matrices. The 2024 data does not provide all of the newer schema’s camera coordinates, direction, or scale-factor metadata, as the dataset card cautions. The per-camera `calibration.json` listings are empty at this revision; use the shared scene calibration file.
 
-### Important caveats
+Annotation frame indices divided by 30 provide a provisional synchronized timeline because the card states synchronization and calibration reports 30 FPS. There are no per-camera wall-clock timestamps in this annotation format. Before interpreting travel times, confirm video frame rate and presentation timestamps from the selected files; retain timing uncertainty in the run manifest.
 
-- Synthetic results do not establish real-world generalization.
-- Use the repository's attribution/citation requirements and verify that the selected files remain covered by the displayed CC BY 4.0 license.
-- Do not download the whole scene by default. The ground-truth file itself is large, but downloading it first enables us to measure cross-camera identity overlap and select cameras based on evidence.
-- The selected subset is for evaluation of association; do not train/tune and report final scores on the same identities without a separated protocol.
+### Camera subset decision
 
-### Minimal staged download plan — not yet executed
+Use cameras **12, 14, 17, and 19** as the first manageable four-view subset. The prior annotation audit ranked these highest for pairwise same-frame identity overlap. That makes them sensible for an initial same-time cross-view appearance/retrieval test, with six camera pairs and all 23 labeled identities represented. It does not establish that they are the best set for camera-transition association: selecting on simultaneous overlap can favor views that see the same people at once. Keep topology and travel-time claims provisional, and include a lower-overlap/transition pair in a later experiment if the videos and calibration support it.
 
-**Stage A — selection metadata only**
-1. Download only `ground_truth.txt` (listed at 84.1 MB) into the local ignored dataset directory.
-2. Parse its camera/object/frame columns to measure pairwise shared identities, temporal overlap, and annotation counts across cameras.
-3. Choose up to four cameras using those statistics, rather than choosing camera IDs arbitrarily.
-4. Record the dataset revision, file URL, SHA-256, and license/attribution in the local run manifest.
+The four listed videos total approximately **1.0 GB** (254.79, 261.14, 249.79, and 234.40 MB respectively), which is feasible for staged local processing on the target machine. Do not fetch them until implementation approval. Keep all data and derived crops/embeddings local and outside Git.
 
-**Stage B — selected video streams**
-5. Download only the selected camera folders' `video.mp4` and `calibration.json` files.
-6. Keep `ground_truth_2025_format.json`, depth/auxiliary files, and other scenes out unless a demonstrated requirement justifies them.
-7. Verify downloaded file sizes and hashes; keep all data outside Git and do not upload it to public or third-party services.
+### License, attribution, and limits
+
+The pinned Hugging Face dataset card displays **Creative Commons Attribution 4.0 International (CC BY 4.0)** for the dataset. The license permits sharing and adaptation, including commercial use, subject to attribution: credit NVIDIA / the dataset, link the license, indicate modifications, and avoid implying endorsement. Use a citation from the dataset card (the 8th AI City Challenge paper is listed for the 2024 release) in any public report. Recheck the pinned card and terms before redistribution. The footage is synthetic, so this benchmark tests behavior on synthetic people and does not establish performance or safety for real-world person tracking.
 
 ### D1 status
 
-**Provisional selection; metadata audit next.** No dataset files have been downloaded by this workflow. Close D1 after camera overlap, storage requirements, attribution, and annotation suitability are confirmed. If scene_002 does not yield four useful cameras, inspect another scene before downloading video.
+**Closed for the initial benchmark choice:** scene_002 at the pinned revision, using cameras 12, 14, 17, and 19 for the first controlled four-camera study. Annotation schema, identity coverage, calibration mapping, dataset synchronization claim, file hash, size, and displayed license have been checked. Video decoding/PTS validation remains a preflight item for after approval to download the selected streams; no videos or model checkpoints have been downloaded.
 ## 14. Milestones after the gates are approved
 
 - **A0 — Freeze and correct baseline:** capture baseline-v0; specify baseline-v1; fix and test candidate generation, overlap, topology prior, timing, and config defects.
@@ -385,7 +376,7 @@ Until D1–D10 are resolved, the permitted work is architecture review, source/l
 
 | ID | Status | Current position |
 |---|---|---|
-| D1 Dataset | PROVISIONAL | NVIDIA PhysicalAI Smart Spaces, CC BY 4.0 per official card; one small synthetic 2024 scene and ≤4 cameras, pending file/size/attribution audit |
+| D1 Dataset | CLOSED | NVIDIA PhysicalAI Smart Spaces, pinned 2024 scene_002; cameras 12/14/17/19 for the initial four-view benchmark; synthetic-only validity and timestamp caveats documented |
 | D2 Baselines | PROPOSED | Freeze baseline-v0; baseline-v1 contains correctness fixes only |
 | D3 Encoder | OPEN | OSNet family is a candidate, not selected |
 | D4 Tracklets | OPEN | Measure purity/fragmentation before locking rules |
