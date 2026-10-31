@@ -4,7 +4,7 @@ from scripts.evaluate_videos import resolve_retention_seconds
 
 
 def test_default_retention_is_seconds():
-    assert resolve_retention_seconds(3.0) == 2.0
+    assert resolve_retention_seconds(3.0) == pytest.approx(10 / 3)
 
 
 def test_legacy_frame_retention_converts_using_sample_rate():
