@@ -157,7 +157,11 @@ class OSNetEncoder:
                 raise RuntimeError("OSNet returned an unexpected feature shape")
             if not bool(torch.isfinite(features).all()):
                 raise RuntimeError("OSNet produced NaN or Inf features")
-            features = F.normalize(features.float(), p=2, dim=1, eps=1e-12)
+            features = features.float()
+            norms = torch.linalg.vector_norm(features, ord=2, dim=1)
+            if bool((norms <= 1e-12).any()):
+                raise RuntimeError("OSNet produced a zero-norm feature")
+            features = F.normalize(features, p=2, dim=1, eps=1e-12)
             if not bool(torch.isfinite(features).all()):
                 raise RuntimeError("normalized OSNet features are not finite")
             outputs.append(features.cpu())

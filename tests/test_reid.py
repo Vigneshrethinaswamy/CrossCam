@@ -101,6 +101,18 @@ def test_batches_are_bounded(tmp_path, monkeypatch):
     assert encoder.encode(rgb_batch(5)).shape == (5, 512)
 
 
+def test_rejects_zero_norm_features(tmp_path, monkeypatch):
+    encoder, _, _ = make_encoder(tmp_path, monkeypatch)
+
+    class ZeroFeatures(nn.Module):
+        def forward(self, images):
+            return torch.zeros(images.shape[0], 512)
+
+    encoder._model = ZeroFeatures()
+    with pytest.raises(RuntimeError, match="zero-norm"):
+        encoder.encode(rgb_batch(1))
+
+
 def test_missing_checkpoint_fails(tmp_path):
     with pytest.raises(FileNotFoundError):
         OSNetEncoder(OSNetConfig(tmp_path / "missing.pth"))
