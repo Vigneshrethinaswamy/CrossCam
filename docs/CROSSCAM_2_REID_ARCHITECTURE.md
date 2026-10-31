@@ -2,7 +2,7 @@
 
 ## Document status
 
-**Status: Architecture under review — implementation is blocked pending the gates in this document.**
+**Status: Architecture under review — limited baseline-v1 correctness-fix work is approved under the scope recorded on PR #2; all other implementation remains gated.**
 
 This document incorporates the independent architecture audit of the current MVP and the proposed learned person re-identification (ReID) upgrade. It is a design specification, not an implementation plan that authorizes coding immediately.
 
@@ -377,7 +377,7 @@ Until D1–D10 are resolved, the permitted work is architecture review, source/l
 | ID | Status | Current position |
 |---|---|---|
 | D1 Dataset | CLOSED | NVIDIA PhysicalAI Smart Spaces, pinned 2024 scene_002; cameras 12/14/17/19 for the initial four-view benchmark; synthetic-only validity and timestamp caveats documented |
-| D2 Baselines | PROPOSED | Freeze baseline-v0; baseline-v1 contains correctness fixes only |
+| D2 Baselines | APPROVED — BASELINE-V1 ONLY | Freeze baseline-v0; implement and test only the correctness fixes in Section 4 on a separate branch; no ReID, downloads, dependency changes, schema changes, or PR merge |
 | D3 Encoder | OPEN | OSNet family is a candidate, not selected |
 | D4 Tracklets | OPEN | Measure purity/fragmentation before locking rules |
 | D5 Timing/topology | OPEN | Explicit offsets, uncertainty, and overlap states required |
