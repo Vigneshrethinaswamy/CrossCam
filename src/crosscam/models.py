@@ -1,7 +1,7 @@
 """Core typed data structures shared by CrossCam components."""
+import math
 from dataclasses import dataclass, field
 from enum import Enum
-import math
 from typing import Any
 
 

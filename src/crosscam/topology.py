@@ -1,7 +1,7 @@
 """Camera topology and candidate-generation helpers."""
+import math
 from collections.abc import Iterable
 from dataclasses import dataclass
-import math
 
 from .models import CameraRelationship, Tracklet, Transition
 
@@ -133,17 +133,16 @@ class CameraTopology:
                 )
                 continue
 
-            if relation == "known_overlap":
-                if (
-                    intervals_overlap
-                    or elapsed is None
-                    or max_search_seconds is None
-                    or abs(elapsed) <= max_search_seconds
-                ):
-                    output[candidate.tracklet_id] = Candidate(
-                        candidate, None, elapsed, True, "known_overlap"
-                    )
-                    continue
+            if relation == "known_overlap" and (
+                intervals_overlap
+                or elapsed is None
+                or max_search_seconds is None
+                or abs(elapsed) <= max_search_seconds
+            ):
+                output[candidate.tracklet_id] = Candidate(
+                    candidate, None, elapsed, True, "known_overlap"
+                )
+                continue
 
             if not widen_search:
                 continue

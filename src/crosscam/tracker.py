@@ -1,6 +1,6 @@
 """Lightweight IoU-based local tracker; IDs are local to one camera."""
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 from .detection import Detection
 
@@ -91,9 +91,11 @@ class IoUTracker:
             assigned[detection_index] = track_id
 
         for track_id, track in list(self._tracks.items()):
-            if track_id not in matched_tracks:
-                if timestamp_seconds - track.last_seen_seconds > self.max_missed_seconds:
-                    del self._tracks[track_id]
+            if (
+                track_id not in matched_tracks
+                and timestamp_seconds - track.last_seen_seconds > self.max_missed_seconds
+            ):
+                del self._tracks[track_id]
 
         for detection_index, detection in enumerate(detections):
             if detection_index in matched_detections:
