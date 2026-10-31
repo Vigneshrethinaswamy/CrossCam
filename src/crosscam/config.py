@@ -69,7 +69,9 @@ def validate_config(config: dict[str, Any]) -> None:
     accept = float(association.get("accept_threshold", 0.78))
     defer = float(association.get("defer_threshold", 0.55))
     margin = float(association.get("min_margin", 0.0))
-    horizon = float(association.get("widen_search_horizon_seconds", 180.0))
+    if "widen_search_horizon_seconds" not in association:
+        raise ValueError("association.widen_search_horizon_seconds is required")
+    horizon = float(association["widen_search_horizon_seconds"])
     time_decay = float(association.get("time_decay_seconds", 90.0))
     widen_score = float(association.get("widen_if_best_score_below", accept))
     if not 0 <= defer <= accept <= 1:
