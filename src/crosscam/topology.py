@@ -109,6 +109,17 @@ class CameraTopology:
             if relation == "known_non_overlap" and intervals_overlap:
                 continue
 
+            # A candidate that ended before this source tracklet began cannot be
+            # a forward handoff. Overlapping intervals remain eligible unless the
+            # pair is explicitly known to be non-overlapping.
+            if (
+                timing_known
+                and elapsed is not None
+                and elapsed < 0
+                and not intervals_overlap
+            ):
+                continue
+
             transition = self._transitions.get((source.camera_id, candidate.camera_id))
             if transition is not None and (
                 elapsed is None
