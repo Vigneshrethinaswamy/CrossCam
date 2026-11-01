@@ -1,15 +1,15 @@
 """Verified local OSNet x0.25 inference adapter (no Torchreid package imports)."""
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Callable
 from dataclasses import dataclass
-import hashlib
 from pathlib import Path
 from typing import Literal
 
 import torch
-from torch import Tensor, nn
 import torch.nn.functional as F
+from torch import Tensor, nn
 
 from ._osnet import osnet_x0_25
 
