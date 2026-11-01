@@ -28,8 +28,8 @@
 - [x] Record the target-laptop synthetic CUDA smoke test; OSNet produced finite 512-D outputs at batch sizes 1 and 4.
 - [x] Verify the adapter on Windows: 65 tests passed and Ruff reported all checks passed at `bb5db36`.
 - [x] Verify CPU fallback and CPU/CUDA embedding parity on the target laptop using deterministic synthetic batches 1 and 4 under explicit IEEE FP32 settings; both passed the declared tolerances.
-- [x] Add reproducible synthetic OSNet precision/performance benchmark script; target-laptop measurements pending.
-- [x] Add three-round CUDA precision repeatability benchmark with fixed synthetic inputs and alternating order; target-laptop run pending.
+- [x] Add and run reproducible synthetic OSNet precision/performance benchmark script; initial 16-case CPU/CUDA matrix passed.
+- [x] Run three-round CUDA precision repeatability benchmark with fixed synthetic inputs and alternating order; 24/24 cases passed, 480 timed iterations, no OOM, and no consistent precision speed winner.
 - [x] Add a local Market-1501 retrieval runner and protocol tests; the dataset is acquired for local research-only use.
 - [ ] Run Market-1501 retrieval only after the MSMT17 checkpoint's downstream usage rights are explicitly cleared.
 - [ ] Persist reviewed global identity hypotheses with human confirmation.
