@@ -22,6 +22,10 @@
 ## M3 — Experimental cross-camera association
 - [x] Add HSV appearance descriptors for extracted camera-local tracklets.
 - [x] Add time/topology candidate ranking with explanations and accept/defer/reject bands.
+- [x] Add reusable crop clipping/quality assessment and temporally distributed candidate selection utilities.
+- [x] Add metadata-only crop-quality diagnostics CLI and per-frame IoU matching / tracklet-purity helpers.
+- [ ] Run crop-quality unit and synthetic-video integration tests on the target Windows environment.
+- [ ] Validate provisional crop thresholds and tracklet eligibility on an authorized, labeled development sequence.
 - [ ] Validate camera offsets and candidate behavior on synchronized camera videos.
 - [ ] Validate a pretrained person ReID encoder and its weights before replacing the HSV descriptor.
 - [x] Implement the standalone OSNet x0.25 adapter with hash-verified safe loading and vendored MIT source.
