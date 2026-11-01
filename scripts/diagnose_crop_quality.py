@@ -16,8 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from crosscam.crop_quality import (  # noqa: E402
-    CropQualityConfig,
     CropAssessment,
+    CropQualityConfig,
     assess_person_crop,
     select_temporal_crops,
     select_temporal_indices,
@@ -174,8 +174,6 @@ def build_tracklet_quality_report(
     video_dir: Path,
     observations: dict[str, dict[TrackKey, list[dict[str, Any]]]],
     config: CropQualityConfig,
-    *,
-    min_iou: float = 0.5,
 ) -> dict[str, Any]:
     """Decode candidate frames and emit crop/tracklet metadata only.
 
@@ -264,12 +262,12 @@ def build_tracklet_quality_report(
             "candidate_rejection_reasons": dict(sorted(Counter(
                 reason for item in assessments for reason in item.rejection_reasons
             ).items())),
-            "eligible_for_embedding_experiment": not reasons,
+            "crop_quality_eligible_for_next_stage": not reasons,
             "eligibility_reasons": reasons,
         })
 
     eligible_count = sum(
-        item["eligible_for_embedding_experiment"] for item in track_reports
+        item["crop_quality_eligible_for_next_stage"] for item in track_reports
     )
     total_observations = sum(item["observation_count"] for item in track_reports)
     summary = {
@@ -284,7 +282,6 @@ def build_tracklet_quality_report(
         "decoded_candidate_frames_by_video": decoded_frames_by_video,
         "unreadable_candidate_frames_by_video": unreadable_candidate_frames_by_video,
         "crop_quality_config": asdict(config),
-        "ground_truth_iou_threshold_reserved_for_future_purity_eval": min_iou,
         "limitations": [
             "Eligibility is a crop/observation readiness check, not proof of tracklet identity purity.",
             "No ground-truth identities are supplied by the detector CSV; purity is not measured here.",
@@ -323,7 +320,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-selected-crops", type=int, default=2)
     parser.add_argument("--max-crops-per-tracklet", type=int, default=5)
     parser.add_argument("--candidate-multiplier", type=int, default=4)
-    parser.add_argument("--ground-truth-iou", type=float, default=0.5)
     return parser.parse_args()
 
 
@@ -348,17 +344,11 @@ def main() -> int:
             max_crops_per_tracklet=args.max_crops_per_tracklet,
             candidate_multiplier=args.candidate_multiplier,
         )
-        if not math.isfinite(args.ground_truth_iou) or not (
-            0.0 <= args.ground_truth_iou <= 1.0
-        ):
-            raise ValueError("--ground-truth-iou must be between 0 and 1")
-
         observations = read_observations(args.input_dir)
         report = build_tracklet_quality_report(
             args.video_dir,
             observations,
             config,
-            min_iou=args.ground_truth_iou,
         )
     except (FileNotFoundError, OSError, ValueError, KeyError) as exc:
         print(str(exc), file=sys.stderr)
