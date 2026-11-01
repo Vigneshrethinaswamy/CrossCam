@@ -36,12 +36,19 @@ The user ran a standalone synthetic CUDA smoke test on the target RTX 3050:
 17.442 ms with 30.14 MiB allocated / 48 MiB reserved. Outputs were finite.
 These are synthetic-input measurements, not retrieval metrics.
 
-The repository adapter has since passed the target-Windows suite (65 tests)
-and Ruff (all checks passed) at commit bb5db36486eed29589d511e6a569e15029f40620.
-CPU fallback and CPU/GPU numerical parity have not yet been measured. The
-preprocessing contract is RGB, 256x128, ImageNet mean/std, then explicit L2
-normalization; it is consistent with the published Torchreid transform
-convention, but no real image crops have been evaluated.
+The repository adapter passed the target-Windows suite (65 tests) and Ruff
+(all checks passed) at commit bb5db36486eed29589d511e6a569e15029f40620.
+The user subsequently verified CPU fallback and CPU/CUDA numerical parity on
+the target laptop for deterministic synthetic batches of 1 and 4. Both passed
+the declared tolerances after explicitly setting global FP32, CUDA matmul,
+cuDNN, and cuDNN convolution precision to IEEE. Maximum absolute differences
+were 1.7881393432617188e-07 (batch 1) and 5.364418029785156e-07 (batch 4);
+minimum cosine similarities were 1.0000001192092896 and 1.0 respectively.
+The adapter itself has not been changed to force IEEE precision; this setting
+was applied in the validation process. Profile the production latency/resource
+cost before adopting it as a runtime policy. The preprocessing contract is
+RGB, 256x128, ImageNet mean/std, then explicit L2 normalization; no real image
+crops or retrieval benchmark have been evaluated.
 
 ## Use
 
@@ -57,6 +64,6 @@ not resolved here, so neither weights nor embeddings are redistributed.
 
 ## D3 validation status
 
-See [D3 validation record](D3_VALIDATION.md) for the measured smoke-test results,
-checkpoint provenance, rights caveat, and remaining acceptance checks. D3 remains
-open pending target CPU/GPU parity and explicit checkpoint-use clearance.
+See [D3 validation record](D3_VALIDATION.md) for the measured smoke-test and
+CPU/CUDA parity results, checkpoint provenance, rights caveat, and remaining
+acceptance checks. D3 remains open pending explicit checkpoint-use clearance.
