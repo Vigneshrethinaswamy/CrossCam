@@ -1,4 +1,3 @@
-	
 from __future__ import annotations
 
 import argparse
@@ -96,7 +95,7 @@ def main() -> int:
         )
 
     print(f"GPU: {torch.cuda.get_device_name(0)}")
-        # Diagnostic mode: request strict IEEE FP32 computation.
+    # Diagnostic mode: request strict IEEE FP32 computation.
     # These settings affect this Python process only.
     print("\nFP32 precision settings before diagnostic:")
 
