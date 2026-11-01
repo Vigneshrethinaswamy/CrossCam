@@ -15,7 +15,7 @@ these properties have been measured.
 
 ## Implemented components
 
-### \`src/crosscam/crop_quality.py\`
+### `src/crosscam/crop_quality.py`
 
 - Clamp xyxy boxes to frame bounds and compute a visible-area fraction.
 - Reject invalid/out-of-frame boxes.
@@ -26,9 +26,9 @@ these properties have been measured.
 - Match predicted boxes to ground-truth boxes one-to-one within a frame using
   IoU, and summarize per-track identity purity plus annotation match coverage.
 
-### \`scripts/diagnose_crop_quality.py\`
+### `scripts/diagnose_crop_quality.py`
 
-Reads the existing \`*_tracks.csv\` outputs and their source videos. It chooses a
+Reads the existing `*_tracks.csv` outputs and their source videos. It chooses a
 bounded set of temporally distributed candidate observations per tracklet,
 decodes each video sequentially, assesses candidates in memory, and writes a
 JSON report containing only metadata:
@@ -73,25 +73,25 @@ First, make sure the evaluation CSVs were generated from videos that you are
 authorized to process. Do not use unrelated sample videos to make identity
 accuracy claims.
 
-\`\`\`powershell
-cd C:\\Works\\CrossCam
+```powershell
+cd C:\Works\CrossCam
 
-.\\.venv\\Scripts\\python.exe -m ruff check --no-cache src/crosscam/crop_quality.py scripts/diagnose_crop_quality.py tests/test_crop_quality.py
-.\\.venv\\Scripts\\python.exe -m pytest -q tests/test_crop_quality.py
+.\.venv\Scripts\python.exe -m ruff check --no-cache src/crosscam/crop_quality.py scripts/diagnose_crop_quality.py tests/test_crop_quality.py
+.\.venv\Scripts\python.exe -m pytest -q tests/test_crop_quality.py
 
-.\\.venv\\Scripts\\python.exe .\\scripts\\diagnose_crop_quality.py \`
-  --input-dir outputs\\evaluation \`
-  --video-dir data \`
-  --output outputs\\crop_quality\\crop_quality_summary.json
-\`\`\`
+.\.venv\Scripts\python.exe .\scripts\diagnose_crop_quality.py `
+  --input-dir outputs\evaluation `
+  --video-dir data `
+  --output outputs\crop_quality\crop_quality_summary.json
+```
 
-The JSON output is under \`outputs/\`, which is Git-ignored. No video, raw crop,
+The JSON output is under `outputs/`, which is Git-ignored. No video, raw crop,
 embedding, or checkpoint is added to Git.
 
 A small authorized sequence is recommended first. The CLI decodes the selected
 video sequentially so it can assess candidate frames in one pass. Variable-frame-
 rate footage requires presentation-timestamp validation; the current
-\`VideoSource\` timestamp is derived from the reported FPS.
+`VideoSource` timestamp is derived from the reported FPS.
 
 ## What remains before D4 can close
 
