@@ -31,6 +31,24 @@ The input directory can be changed to compare another experiment, such as `outpu
 
 Lower ID counts, fewer singletons, or longer tracks do not automatically mean better tracking: a tracker can also incorrectly merge different people. These summaries are diagnostic proxies, not IDF1/HOTA or ground-truth identity accuracy. For trustworthy accuracy metrics, annotate a small representative evaluation set with person boxes and identity labels.
 
+## Crop-quality diagnostics
+
+The next diagnostic layer assesses a bounded set of representative crops per
+local tracklet without saving the image data:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\diagnose_crop_quality.py --input-dir outputs\evaluation --video-dir data --output outputs\crop_quality\crop_quality_summary.json
+```
+
+It reports box clipping/visibility, crop dimensions, detector score, a
+Laplacian-variance sharpness proxy, rejection reasons, and temporally selected
+frame indices. Thresholds are provisional. The report's crop-quality
+eligibility flag does not establish identity purity or correct tracking.
+
+See [D4 tracklet quality](D4_TRACKLET_QUALITY.md) for the implementation,
+configuration, limitations, and remaining validation tasks. Raw crops and
+embeddings are not saved by this command.
+
 ## Why do tracks fragment?
 
 The current tracker greedily matches detections by bounding-box intersection-over-union (IoU). It has no motion prediction and no appearance features. When a box shifts, a person is occluded, or detections disappear, overlap may fall below the threshold and a new local ID is created.
