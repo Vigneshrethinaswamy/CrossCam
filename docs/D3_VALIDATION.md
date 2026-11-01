@@ -93,8 +93,36 @@ inside the validation process; the adapter's production precision policy has
 not been changed. Profile latency and memory under this setting before
 adopting it as the production default.
 
-## Rights and limitations
+## Synthetic precision/performance benchmark
 
+The repository now includes two reproducible local scripts:
+
+- `scripts/validate_osnet_parity.py`: CPU/CUDA numerical consistency for synthetic inputs.
+- `scripts/benchmark_osnet_precision.py`: compares backend-default precision
+  (`none`) against explicit IEEE FP32 on CPU and CUDA, using deterministic
+  synthetic RGB float inputs at batch sizes 1, 4, 8, and 16.
+
+The performance script verifies checkpoint size and SHA-256, warms up each
+case, synchronizes CUDA around timed calls, validates finite normalized
+512-D outputs, and records median/mean/p95 latency, images per second,
+peak allocated/reserved VRAM, and incremental peak memory where available.
+Timing covers `OSNetEncoder.encode()`, including its device transfers and
+CPU output return. CPU results are included under both precision labels for
+completeness; the CUDA FP32 backend settings are the material comparison.
+
+**The performance benchmark has been added but has not yet been run on the
+target laptop.** No performance or precision-speed conclusion is claimed.
+Run it with:
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\benchmark_osnet_precision.py
+```
+
+Use `--iterations 10` for a shorter initial run (minimum 5), and
+`--batches 1 4` for a reduced smoke benchmark. Synthetic inputs are not
+person images and these measurements are not ReID retrieval metrics.
+
+## Rights and limitations
 
 The Torchreid code repository is MIT-licensed. Separately, the model author clarified that pretrained models are for research use because some training datasets may not permit commercial use. MSMT17 access is controlled through a signed agreement. These facts do not establish a complete downstream grant for this pretrained checkpoint. The local checkpoint must therefore remain private and must not be used for the Market-1501 evaluation until its use for that purpose is explicitly cleared.
 
