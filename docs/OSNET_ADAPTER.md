@@ -60,10 +60,10 @@ Run the local benchmark with:
 
 It compares backend-default and IEEE FP32 settings on CPU and CUDA with
 synthetic inputs at batch sizes 1, 4, 8, and 16. It reports median/mean/p95
-latency, throughput, and CUDA memory peaks. Timed operations include the
-adapter's device transfers and CPU output return. The script has been added
-but target-laptop performance results are still pending. It does not use
-Market-1501 or any person imagery.
+latency, throughput, and CUDA memory peaks. The target laptop completed all
+16 configurations with valid outputs and no OOM. Those first-run timings are
+preliminary; the controlled three-round CUDA experiment below is the stronger
+precision-mode comparison. No Market-1501 or person imagery is used.
 
 ## CUDA precision repeatability benchmark
 
@@ -73,10 +73,17 @@ Use the focused three-round benchmark after pulling the latest branch:
 .\.venv\Scripts\python.exe .\scripts\repeat_osnet_cuda_benchmark.py
 ```
 
-It compares default versus IEEE FP32 in alternating order over three rounds,
-with identical synthetic inputs and batch sizes 1, 4, 8, and 16. The script
-writes detailed JSON to `outputs/osnet_cuda_repeatability.json`. Results are
-pending; this benchmark does not load Market-1501 or person imagery.
+It compared default versus IEEE FP32 in alternating order over three rounds,
+with identical synthetic inputs and batch sizes 1, 4, 8, and 16. All 24 cases
+passed and no CUDA OOM occurred. The paired timing effect changed direction
+across batches and rounds, so neither precision mode is consistently faster.
+The detailed JSON is saved locally at `outputs/osnet_cuda_repeatability.json`.
+The experiment does not load Market-1501 or person imagery.
+
+The initial validated runtime choice for parity-sensitive experiments is
+explicit IEEE FP32. This is selected for numerical consistency, not for a
+claimed speed advantage. The encoder's default runtime behavior is unchanged
+until a full-pipeline profile justifies a deliberate policy change.
 
 ## Use
 
