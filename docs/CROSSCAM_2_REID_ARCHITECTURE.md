@@ -382,9 +382,12 @@ tolerances. No Market-1501 retrieval was run.
 
 **D3 remains open.** Keep the checkpoint local and out of Market-1501 evaluation
 until downstream use is explicitly cleared. CPU/CUDA synthetic parity passed
-under explicit IEEE FP32 settings; profile the runtime cost of this precision
-mode before adopting it in production. Resolve the checkpoint terms or choose
-weights with documented rights and training-data provenance. See
+under explicit IEEE FP32 settings. A three-round CUDA benchmark completed
+24/24 cases with no OOM; neither default nor IEEE FP32 was consistently faster.
+Use IEEE FP32 for parity-sensitive experiments, but do not claim a speed
+advantage or change production defaults without full-pipeline profiling.
+Resolve the checkpoint terms or choose weights with documented rights and
+training-data provenance. See
 [D3 validation record](D3_VALIDATION.md).
 
 ## 14. Milestones after the gates are approved
@@ -417,7 +420,7 @@ scene videos without their separate approval.
 |---|---|---|
 | D1 Dataset | CLOSED | NVIDIA PhysicalAI Smart Spaces, pinned 2024 scene_002; cameras 12/14/17/19 for the initial four-view benchmark; synthetic-only validity and timestamp caveats documented |
 | D2 Baselines | CLOSED — BASELINE-V1 CORRECTNESS SCOPE | baseline-v0 code remains at MVP revision `2cfd0ea55fbc594eb580c3b044c3e8820bd66db3`; baseline-v1 correctness changes and regression tests are on `codex/baseline-v1-correctness`; target Windows verification reported Ruff clean and 43 repository tests passed. ReID, downloads, dependency/schema changes, and PR #2 merge remain gated |
-| D3 Encoder | OPEN | OSNet x0.25 adapter passed target-Windows tests, synthetic RTX 3050 CUDA inference, and CPU/CUDA parity for batches 1 and 4 under explicit IEEE FP32 settings; MSMT17 checkpoint downstream-use rights remain unresolved. See [D3 validation record](D3_VALIDATION.md). |
+| D3 Encoder | OPEN | OSNet x0.25 adapter passed target-Windows tests, synthetic CUDA smoke testing and CPU/CUDA parity under IEEE FP32; three-round CUDA repeatability benchmark completed 24/24 cases with no consistent precision speed winner. MSMT17 checkpoint downstream-use rights remain unresolved. See [D3 validation record](D3_VALIDATION.md). |
 | D4 Tracklets | OPEN | Measure purity/fragmentation before locking rules |
 | D5 Timing/topology | OPEN | Explicit offsets, uncertainty, and overlap states required |
 | D6 Association | PROPOSED | Eligibility → top-k retrieval → learned/fit pair scorer → assignment |
