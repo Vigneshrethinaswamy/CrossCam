@@ -22,12 +22,26 @@ in [0, 1], already resized to (256, 128), and applies Torchreid's standard
 ImageNet mean/std. It then explicitly L2-normalizes the raw eval-mode 512-D
 feature vectors. No BGR conversion, implicit resizing, or augmentation occurs.
 
-The checkpoint hash and strict state-dict load protect integrity and shape/key
-compatibility. The model-zoo source confirms the size and transform convention;
-the exact original local Torchreid installation used for the supplied smoke test
-was unavailable for direct inspection in this workspace. Therefore, rerun the
-adapter against the checkpoint on the target laptop before treating preprocessing
-parity as closed.
+The user verified the checkpoint hash against both the local file and the
+corresponding Hugging Face file entry. The file entry displays an MIT license
+label, but the checkpoint's downstream terms are not treated as conclusively
+cleared: the model author has clarified that pretrained models are for research
+use because some training datasets may restrict commercial use, and MSMT17
+access requires a signed agreement. Keep these weights local and out of the
+Market-1501 evaluation until explicit downstream permission is established.
+
+The user ran a standalone synthetic CUDA smoke test on the target RTX 3050:
+567 state tensors loaded strictly; feature dimension 512; batch-1 latency
+17.336 ms with 20.38 MiB peak allocated / 26 MiB reserved; batch-4 latency
+17.442 ms with 30.14 MiB allocated / 48 MiB reserved. Outputs were finite.
+These are synthetic-input measurements, not retrieval metrics.
+
+The repository adapter has since passed the target-Windows suite (65 tests)
+and Ruff (all checks passed) at commit bb5db36486eed29589d511e6a569e15029f40620.
+CPU fallback and CPU/GPU numerical parity have not yet been measured. The
+preprocessing contract is RGB, 256x128, ImageNet mean/std, then explicit L2
+normalization; it is consistent with the published Torchreid transform
+convention, but no real image crops have been evaluated.
 
 ## Use
 
@@ -39,3 +53,10 @@ switch.
 
 The local checkpoint remains outside Git. MSMT17 checkpoint data-use terms are
 not resolved here, so neither weights nor embeddings are redistributed.
+
+
+## D3 validation status
+
+See [D3 validation record](D3_VALIDATION.md) for the measured smoke-test results,
+checkpoint provenance, rights caveat, and remaining acceptance checks. D3 remains
+open pending target CPU/GPU parity and explicit checkpoint-use clearance.
