@@ -152,8 +152,8 @@ def assess_person_crop(
     normalized_box = _normalize_box(box)
     score = float(detection_score)
     timestamp = float(timestamp_seconds)
-    if not math.isfinite(score):
-        raise ValueError("detection_score must be finite")
+    if not math.isfinite(score) or not 0.0 <= score <= 1.0:
+        raise ValueError("detection_score must be finite and between 0 and 1")
     if not math.isfinite(timestamp) or timestamp < 0:
         raise ValueError("timestamp_seconds must be finite and non-negative")
     if frame_index < 0:
