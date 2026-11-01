@@ -153,6 +153,45 @@ and reservation, and the increase above the warm-up baseline separately.
 The revised benchmark has **not yet been run** on the target laptop; collect a
 fresh result before selecting a production precision policy.
 
+## Three-round CUDA precision repeatability benchmark
+
+A dedicated CUDA-only script is available at
+`scripts/repeat_osnet_cuda_benchmark.py`. It uses one verified OSNet encoder
+instance and fixed synthetic RGB float32 tensors generated once per batch size,
+then reuses the same tensors across every precision mode and round.
+
+The sequence is deliberately balanced:
+
+| Round | Precision order within each batch | Batch order |
+|---:|---|---|
+| 1 | Default → IEEE | 1, 4, 8, 16 |
+| 2 | IEEE → Default | 16, 8, 4, 1 |
+| 3 | Default → IEEE | 1, 4, 8, 16 |
+
+Each case warms up independently, synchronizes CUDA around timed calls, checks
+finite normalized 512-D embeddings, and records median/mean/p95 latency,
+throughput, effective precision settings, and CUDA allocator memory before and
+during measurement. A JSON report is written by default to
+`outputs/osnet_cuda_repeatability.json`.
+
+Run on the target Windows machine:
+
+```powershell
+.\.venv\Scripts\python.exe -m ruff check --no-cache scripts/repeat_osnet_cuda_benchmark.py
+.\.venv\Scripts\python.exe .\scripts\repeat_osnet_cuda_benchmark.py
+```
+
+Optional shorter diagnostic:
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\repeat_osnet_cuda_benchmark.py --warmup 3 --iterations 10
+```
+
+The default is 5 warm-ups and 20 measured iterations per case (24 cases total).
+Three rounds provide descriptive repeatability evidence only, not a statistical
+significance test. Performance results remain **pending** until this script is
+run on the target laptop. No precision policy change is made to the adapter.
+
 ## Rights and limitations
 
 The Torchreid code repository is MIT-licensed. Separately, the model author clarified that pretrained models are for research use because some training datasets may not permit commercial use. MSMT17 access is controlled through a signed agreement. These facts do not establish a complete downstream grant for this pretrained checkpoint. The local checkpoint must therefore remain private and must not be used for the Market-1501 evaluation until its use for that purpose is explicitly cleared.
