@@ -122,6 +122,37 @@ Use `--iterations 10` for a shorter initial run (minimum 5), and
 `--batches 1 4` for a reduced smoke benchmark. Synthetic inputs are not
 person images and these measurements are not ReID retrieval metrics.
 
+## Initial synthetic precision/performance run (2026-11-01; preliminary)
+
+The user ran the first version of `scripts/benchmark_osnet_precision.py` on
+the target RTX 3050 with 5 warm-up and 20 measured iterations at batch sizes
+1, 4, 8, and 16. All 16 CPU/CUDA × precision × batch cases completed with
+finite, normalized 512-D outputs and no CUDA OOM.
+
+Initial CUDA median results were:
+
+| Batch | Default precision | IEEE FP32 |
+|---:|---:|---:|
+| 1 | 28.95 ms | 25.76 ms |
+| 4 | 28.05 ms | 25.52 ms |
+| 8 | 27.14 ms | 26.35 ms |
+| 16 | 28.46 ms | 28.27 ms |
+
+These figures are **preliminary, not production conclusions**. The first run
+executed all default cases before all IEEE cases, so precision mode and run
+order were confounded. The CUDA caching allocator also retained reserved
+blocks across batch configurations, making the old per-case reserved-memory
+figures unsuitable for comparison. CPU timings were noisy and should not be
+used to conclude that one precision mode is faster.
+
+The benchmark was revised in commit
+`2e1709308af7af6b9310c8662d414a6babda9dd6` to remove Ruff findings, pair
+precision runs by device and batch size, and clear unused CUDA cache between
+cases. It now reports warm-up allocation/reservation, measured peak allocation
+and reservation, and the increase above the warm-up baseline separately.
+The revised benchmark has **not yet been run** on the target laptop; collect a
+fresh result before selecting a production precision policy.
+
 ## Rights and limitations
 
 The Torchreid code repository is MIT-licensed. Separately, the model author clarified that pretrained models are for research use because some training datasets may not permit commercial use. MSMT17 access is controlled through a signed agreement. These facts do not establish a complete downstream grant for this pretrained checkpoint. The local checkpoint must therefore remain private and must not be used for the Market-1501 evaluation until its use for that purpose is explicitly cleared.
