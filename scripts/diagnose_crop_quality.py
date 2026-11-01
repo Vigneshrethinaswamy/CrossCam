@@ -15,14 +15,14 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from crosscam.crop_quality import (  # noqa: E402
+from crosscam.crop_quality import (
     CropAssessment,
     CropQualityConfig,
     assess_person_crop,
     select_temporal_crops,
     select_temporal_indices,
 )
-from crosscam.video import VideoSource  # noqa: E402
+from crosscam.video import VideoSource
 
 REQUIRED_COLUMNS = {
     "video",
@@ -111,6 +111,9 @@ def read_observations(input_dir: Path) -> dict[str, dict[TrackKey, list[dict[str
                     "confidence": score,
                     "box": box,
                 })
+
+    if not grouped:
+        raise ValueError(f"No tracking observations found in {input_dir}")
 
     for video_tracks in grouped.values():
         for rows in video_tracks.values():
@@ -241,6 +244,7 @@ def build_tracklet_quality_report(
             "camera_id": camera_id,
             "track_id": track_id,
             "observation_count": metadata["observations"],
+            "temporal_candidate_count": metadata["candidate_count"],
             **_assessment_summary(assessments),
             "selected_crop_count": len(chosen),
             "selected_frame_indices": [item.frame_index for item in chosen],
@@ -360,7 +364,7 @@ def main() -> int:
     summary = report["summary"]
     print(f"Videos: {summary['video_count']}")
     print(f"Tracklets: {summary['tracklet_count']}")
-    print(f"Eligible for embedding experiment: {summary['eligible_tracklets']}")
+    print(f"Crop-quality eligible for next stage: {summary['eligible_tracklets']}")
     print(f"Ineligible: {summary['ineligible_tracklets']}")
     print(f"Quality report: {args.output}")
     print("No raw crops or embeddings were saved.")
