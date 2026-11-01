@@ -192,8 +192,8 @@ Optional shorter diagnostic:
 
 The default is 5 warm-ups and 20 measured iterations per case (24 cases total).
 Three rounds provide descriptive repeatability evidence only, not a statistical
-significance test. Performance results remain **pending** until this script is
-run on the target laptop. No precision policy change is made to the adapter.
+significance test. The target-laptop run is recorded in the next section. No
+precision policy change is made to the adapter.
 
 ## Three-round CUDA precision repeatability results (2026-11-01)
 
