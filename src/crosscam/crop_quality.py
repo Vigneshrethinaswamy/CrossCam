@@ -307,7 +307,7 @@ def match_frame_detections_to_ground_truth(
     for pred_index, predicted in enumerate(predicted_boxes):
         for gt_index, truth in enumerate(ground_truth_boxes):
             overlap = box_iou(predicted, truth)
-            if overlap >= min_iou:
+            if overlap > 0.0 and overlap >= min_iou:
                 pairs.append((overlap, pred_index, gt_index))
 
     used_predictions: set[int] = set()
