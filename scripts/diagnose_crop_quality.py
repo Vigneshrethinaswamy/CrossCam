@@ -237,7 +237,6 @@ def build_tracklet_quality_report(
         if len(assessments) < metadata["candidate_count"]:
             reasons.append("candidate_frames_not_decoded")
 
-        accepted = [item for item in assessments if item.accepted]
         track_reports.append({
             "tracklet_id": f"{camera_id}:{track_id}",
             "video": video,
