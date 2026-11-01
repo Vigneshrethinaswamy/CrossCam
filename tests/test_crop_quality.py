@@ -226,3 +226,114 @@ def test_tracklet_purity_handles_no_ground_truth_matches():
     assert result.match_coverage == 0.0
     with pytest.raises(ValueError):
         summarize_tracklet_purity([])
+
+
+def test_crop_quality_report_decodes_synthetic_video_without_saving_crops(tmp_path):
+    import csv
+
+    import cv2
+
+    from crosscam.crop_quality import CropQualityConfig
+    from scripts.diagnose_crop_quality import (
+        build_tracklet_quality_report,
+        read_observations,
+    )
+
+    video_dir = tmp_path / "videos"
+    csv_dir = tmp_path / "evaluation"
+    video_dir.mkdir()
+    csv_dir.mkdir()
+    video_path = video_dir / "cam_test.avi"
+
+    writer = cv2.VideoWriter(
+        str(video_path),
+        cv2.VideoWriter_fourcc(*"MJPG"),
+        5.0,
+        (96, 128),
+    )
+    if not writer.isOpened():
+        pytest.skip("OpenCV video writer is unavailable in this environment")
+    frame = checkerboard_frame()
+    for _ in range(5):
+        writer.write(frame)
+    writer.release()
+
+    csv_path = csv_dir / "cam_test_tracks.csv"
+    fields = [
+        "video", "camera_id", "frame_index", "timestamp_seconds",
+        "track_id", "confidence", "x1", "y1", "x2", "y2",
+    ]
+    with csv_path.open("w", newline="", encoding="utf-8") as stream:
+        output = csv.DictWriter(stream, fieldnames=fields)
+        output.writeheader()
+        for frame_index in range(5):
+            output.writerow({
+                "video": video_path.name,
+                "camera_id": "cam_test",
+                "frame_index": frame_index,
+                "timestamp_seconds": frame_index / 5,
+                "track_id": 7,
+                "confidence": 0.95,
+                "x1": 8,
+                "y1": 8,
+                "x2": 88,
+                "y2": 120,
+            })
+
+    observations = read_observations(csv_dir)
+    report = build_tracklet_quality_report(
+        video_dir,
+        observations,
+        CropQualityConfig(
+            min_width=32,
+            min_height=64,
+            min_detection_score=0.4,
+            min_visible_fraction=0.9,
+            min_observations=3,
+            min_selected_crops=2,
+            max_crops_per_tracklet=2,
+            candidate_multiplier=2,
+        ),
+    )
+
+    track = report["tracklets"][0]
+    assert report["summary"]["tracklet_count"] == 1
+    assert track["observation_count"] == 5
+    assert track["decoded_candidate_count"] == 4
+    assert track["selected_crop_count"] == 2
+    assert track["crop_quality_eligible_for_next_stage"] is True
+    assert track["selected_frame_indices"] == [0, 4]
+    assert not list(tmp_path.rglob("*.jpg"))
+    assert not list(tmp_path.rglob("*.png"))
+
+
+def test_read_observations_rejects_duplicate_track_frame_rows(tmp_path):
+    import csv
+
+    from scripts.diagnose_crop_quality import read_observations
+
+    csv_path = tmp_path / "cam_test_tracks.csv"
+    fields = [
+        "video", "camera_id", "frame_index", "timestamp_seconds",
+        "track_id", "confidence", "x1", "y1", "x2", "y2",
+    ]
+    row = {
+        "video": "cam_test.avi",
+        "camera_id": "cam_test",
+        "frame_index": 0,
+        "timestamp_seconds": 0.0,
+        "track_id": 1,
+        "confidence": 0.9,
+        "x1": 0,
+        "y1": 0,
+        "x2": 10,
+        "y2": 20,
+    }
+    with csv_path.open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.DictWriter(stream, fieldnames=fields)
+        writer.writeheader()
+        writer.writerow(row)
+        writer.writerow(row)
+
+    with pytest.raises(ValueError, match="Duplicate observation"):
+        read_observations(tmp_path)
