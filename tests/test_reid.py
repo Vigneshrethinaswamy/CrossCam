@@ -4,6 +4,7 @@ import hashlib
 import importlib
 
 import pytest
+
 torch = pytest.importorskip("torch")
 nn = torch.nn
 reid = importlib.import_module("crosscam.reid")

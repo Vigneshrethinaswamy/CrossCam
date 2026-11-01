@@ -1,8 +1,8 @@
 """Market-1501 image-retrieval metrics for a frozen encoder."""
 from __future__ import annotations
 
+from collections.abc import Sequence
 import re
-from typing import Sequence
 
 import numpy as np
 from numpy.typing import NDArray

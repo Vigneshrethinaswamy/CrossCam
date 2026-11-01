@@ -5,3 +5,7 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+# Vendored upstream MIT source is retained verbatim and linted upstream.
+[tool.ruff.lint.per-file-ignores]
+"src/crosscam/_osnet.py" = ["ALL"]

@@ -1,10 +1,11 @@
 """Verified local OSNet x0.25 inference adapter (no Torchreid package imports)."""
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 import hashlib
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Literal
 
 import torch
 from torch import Tensor, nn
@@ -101,7 +102,7 @@ class OSNetEncoder:
             raise ValueError("OSNet checkpoint SHA-256 does not match expected_sha256")
         obj = torch.load(checkpoint, map_location="cpu", weights_only=True)
         if not isinstance(obj, dict):
-            raise ValueError("checkpoint must contain a state-dictionary object")
+            raise TypeError("checkpoint must contain a state-dictionary object")
         state = obj.get("state_dict", obj.get("model_state_dict", obj))
         if not isinstance(state, dict) or not state:
             raise ValueError("checkpoint has no state dictionary")
