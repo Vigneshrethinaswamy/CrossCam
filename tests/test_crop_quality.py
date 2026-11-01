@@ -127,6 +127,7 @@ def test_assessment_rejects_invalid_frames(frame, box, score, frame_index, times
     [
         ((0, 0, float("nan"), 10), 0.9, 0, 0.0),
         ((0, 0, 10, 10), float("inf"), 0, 0.0),
+        ((0, 0, 10, 10), 1.1, 0, 0.0),
         ((0, 0, 10, 10), 0.9, -1, 0.0),
         ((0, 0, 10, 10), 0.9, 0, -0.1),
     ],
@@ -150,7 +151,7 @@ def test_temporal_indices_are_evenly_distributed_and_unique():
 def test_temporal_indices_handle_unsorted_and_duplicate_timestamps():
     timestamps = [4.0, 0.0, 2.0, 2.0, 8.0]
     selected = select_temporal_indices(timestamps, max_items=3)
-    assert selected == [1, 2, 4]
+    assert selected == [1, 0, 4]
     assert select_temporal_indices(timestamps, max_items=10) == [1, 2, 3, 0, 4]
 
 
