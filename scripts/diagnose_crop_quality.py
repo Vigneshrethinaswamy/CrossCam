@@ -287,12 +287,21 @@ def build_tracklet_quality_report(
         "unreadable_candidate_frames_by_video": unreadable_candidate_frames_by_video,
         "crop_quality_config": asdict(config),
         "limitations": [
-            "Eligibility is a crop/observation readiness check, not proof of tracklet identity purity.",
-            "No ground-truth identities are supplied by the detector CSV; purity is not measured here.",
+            (
+                "Eligibility is a crop/observation readiness check, not proof "
+                "of tracklet identity purity."
+            ),
+            (
+                "No ground-truth identities are supplied by the detector CSV; "
+                "purity is not measured here."
+            ),
             "Laplacian variance is a blur proxy and is not a calibrated image-quality score.",
             "Thresholds are provisional and require development-set review.",
             "Raw crops are evaluated in memory and are not saved; embeddings are not generated.",
-            "VideoSource timestamps are derived from reported FPS; verify PTS for variable-frame-rate footage.",
+            (
+                "VideoSource timestamps are derived from reported FPS; verify "
+                "PTS for variable-frame-rate footage."
+            ),
         ],
     }
     return {"summary": summary, "tracklets": track_reports}
