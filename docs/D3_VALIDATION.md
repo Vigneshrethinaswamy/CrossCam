@@ -110,8 +110,9 @@ Timing covers `OSNetEncoder.encode()`, including its device transfers and
 CPU output return. CPU results are included under both precision labels for
 completeness; the CUDA FP32 backend settings are the material comparison.
 
-**The performance benchmark has been added but has not yet been run on the
-target laptop.** No performance or precision-speed conclusion is claimed.
+The CPU/CUDA precision benchmark has now been run on the target laptop. Its
+first results are recorded below and superseded for precision-mode comparison
+by the controlled three-round CUDA experiment.
 Run it with:
 
 ```powershell
@@ -150,8 +151,10 @@ The benchmark was revised in commit
 precision runs by device and batch size, and clear unused CUDA cache between
 cases. It now reports warm-up allocation/reservation, measured peak allocation
 and reservation, and the increase above the warm-up baseline separately.
-The revised benchmark has **not yet been run** on the target laptop; collect a
-fresh result before selecting a production precision policy.
+The revised four-way CPU/CUDA benchmark was run by the user; Ruff passed,
+and all 16 cases completed with valid outputs. Its initial results are kept
+as preliminary context; the later three-round CUDA-only experiment below is
+the controlled repeatability comparison.
 
 ## Three-round CUDA precision repeatability benchmark
 
@@ -192,6 +195,80 @@ Three rounds provide descriptive repeatability evidence only, not a statistical
 significance test. Performance results remain **pending** until this script is
 run on the target laptop. No precision policy change is made to the adapter.
 
+## Three-round CUDA precision repeatability results (2026-11-01)
+
+The user ran `scripts/repeat_osnet_cuda_benchmark.py` on the target Windows
+laptop with PyTorch `2.14.1+cu130`, CUDA runtime 13.0, and an NVIDIA RTX 3050
+Laptop GPU. The script verified the checkpoint size and SHA-256, reused one
+CUDA encoder instance, and reused fixed synthetic inputs for batch sizes 1, 4,
+8, and 16 over all three rounds.
+
+- 24/24 configurations passed output shape, finiteness, and unit-normalization checks.
+- 480 timed inference iterations completed (20 per configuration).
+- No CUDA OOM occurred.
+- Ruff reported all checks passed for the repeatability script.
+- The JSON report was saved locally to `outputs/osnet_cuda_repeatability.json`; this path is Git-ignored.
+
+### CUDA median latency by round
+
+| Batch | Round 1 default | Round 1 IEEE | Round 2 default | Round 2 IEEE | Round 3 default | Round 3 IEEE |
+|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 42.080 ms | 41.449 ms | 41.325 ms | 43.859 ms | 42.161 ms | 44.282 ms |
+| 4 | 44.871 ms | 43.136 ms | 43.104 ms | 43.851 ms | 49.713 ms | 47.747 ms |
+| 8 | 45.569 ms | 45.594 ms | 45.596 ms | 44.941 ms | 47.200 ms | 44.982 ms |
+| 16 | 49.937 ms | 54.373 ms | 50.011 ms | 49.945 ms | 48.744 ms | 48.921 ms |
+
+### Paired precision comparison
+
+The percentage is (IEEE median − default median) / default median × 100.
+Negative means IEEE was faster; positive means IEEE was slower.
+
+| Batch | Median paired difference | Observed round range | Round-to-round spread |
+|---:|---:|---:|---:|
+| 1 | +5.03% | −1.50% to +6.13% | 7.63 percentage points |
+| 4 | −3.87% | −3.95% to +1.73% | 5.69 percentage points |
+| 8 | −1.44% | −4.70% to +0.05% | 4.75 percentage points |
+| 16 | +0.36% | −0.13% to +8.88% | 9.01 percentage points |
+
+**Interpretation:** Neither precision mode was consistently faster across batch
+sizes and rounds. The paired effects changed sign, and the round-to-round
+spread was larger than several of the observed median differences. Three
+rounds are descriptive repeatability evidence, not a statistical significance
+test; no speed advantage is claimed for either mode.
+
+### CUDA memory
+
+The measured PyTorch peak allocated memory was the same under both precision
+modes for each batch size:
+
+| Batch | Peak allocated | Peak reserved |
+|---:|---:|---:|
+| 1 | 20.76 MiB | 26 MiB |
+| 4 | 32.00 MiB | 48 MiB |
+| 8 | 47.00 MiB | 70 MiB |
+| 16 | 75.13 MiB | 110 MiB |
+
+The allocator's reserved pool was already established during warm-up. The
+measured incremental peak reserved memory was 0 MiB in these cases; this does
+not mean the process used zero reserved VRAM. The model's warm-up baseline
+allocated memory was about 17.13 MiB, and the measured incremental allocated
+peak ranged from 3.63 MiB to 58.00 MiB.
+
+### Precision decision
+
+Use explicit IEEE FP32 as the **validated parity configuration** for the next
+controlled experiments, because the earlier default-setting CPU/CUDA
+comparison missed the declared numerical parity limits while IEEE passed.
+This is not a claim that IEEE is faster: the three-round timing results show
+no consistent speed winner. The production adapter has not been modified to
+force IEEE precision. Before changing runtime defaults, benchmark the complete
+pipeline and confirm the relevant numerical behavior with representative
+image crops once checkpoint use is cleared.
+
+The benchmark inputs were synthetic; this experiment does not measure person
+ReID accuracy, real-crop preprocessing quality, or cross-camera retrieval
+performance.
+
 ## Rights and limitations
 
 The Torchreid code repository is MIT-licensed. Separately, the model author clarified that pretrained models are for research use because some training datasets may not permit commercial use. MSMT17 access is controlled through a signed agreement. These facts do not establish a complete downstream grant for this pretrained checkpoint. The local checkpoint must therefore remain private and must not be used for the Market-1501 evaluation until its use for that purpose is explicitly cleared.
@@ -202,5 +279,6 @@ Market-1501 was acquired separately for local research-only, non-commercial eval
 
 - [x] Run adapter CPU inference on the target Windows laptop using the verified checkpoint.
 - [x] Compare CPU and CUDA outputs for deterministic synthetic batch sizes 1 and 4 under explicit IEEE FP32 settings; both batches passed max absolute difference ≤ 5e-4, minimum cosine similarity ≥ 0.99999, and maximum unit-norm error ≤ 1e-5.
+- [x] Complete the three-round CUDA precision repeatability run: 24/24 cases passed, 480 timed inference iterations completed, and no CUDA OOM occurred. No consistent performance winner was observed; IEEE FP32 remains the validated parity configuration, not a speed optimization.
 - [ ] Establish explicit downstream usage permission for the MSMT17 pretrained checkpoint, or replace it with weights whose rights and training-data provenance are adequately documented.
 - [ ] Only after checkpoint-use rights are cleared, run the local Market-1501 retrieval protocol and report Rank-1, mAP, and runtime. Do not fine-tune for this L0 evaluation.
