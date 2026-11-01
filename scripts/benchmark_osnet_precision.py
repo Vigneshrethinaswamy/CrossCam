@@ -12,10 +12,10 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-import torch  # noqa: E402
-from torch import Tensor  # noqa: E402
+import torch
+from torch import Tensor
 
-from crosscam.reid import (  # noqa: E402
+from crosscam.reid import (
     EXPECTED_CHECKPOINT_SHA256,
     FEATURE_DIM,
     INPUT_HEIGHT,
@@ -113,10 +113,17 @@ def benchmark_case(
     set_precision(precision)
     images = make_input(batch_size)
 
+    # Release unused cached CUDA blocks between cases so one batch size does
+    # not inflate the next case's reserved-memory reading.
+    if device == "cuda":
+        synchronize(device)
+        torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+
     # Warm up kernels and allocator before collecting measurements.
     with torch.inference_mode():
         for _ in range(warmup):
-            output = encoder.encode(images)
+            encoder.encode(images)
         synchronize(device)
 
     if device == "cuda":
@@ -147,22 +154,31 @@ def benchmark_case(
     p95_ms = percentile_95(samples_ms)
     throughput = batch_size / (median_ms / 1000.0)
 
-    peak_allocated_mib = None
-    peak_reserved_mib = None
-    incremental_allocated_mib = None
-    incremental_reserved_mib = None
+    memory = {
+        "warmup_allocated_vram_mib": None,
+        "warmup_reserved_vram_mib": None,
+        "measured_peak_allocated_vram_mib": None,
+        "measured_peak_reserved_vram_mib": None,
+        "measured_peak_allocated_increase_mib": None,
+        "measured_peak_reserved_increase_mib": None,
+    }
 
     if device == "cuda":
         peak_allocated = torch.cuda.max_memory_allocated()
         peak_reserved = torch.cuda.max_memory_reserved()
-        peak_allocated_mib = peak_allocated / (1024**2)
-        peak_reserved_mib = peak_reserved / (1024**2)
-        incremental_allocated_mib = (
-            peak_allocated - baseline_allocated
-        ) / (1024**2)
-        incremental_reserved_mib = (
-            peak_reserved - baseline_reserved
-        ) / (1024**2)
+        mib = 1024**2
+        memory = {
+            "warmup_allocated_vram_mib": baseline_allocated / mib,
+            "warmup_reserved_vram_mib": baseline_reserved / mib,
+            "measured_peak_allocated_vram_mib": peak_allocated / mib,
+            "measured_peak_reserved_vram_mib": peak_reserved / mib,
+            "measured_peak_allocated_increase_mib": max(
+                0, peak_allocated - baseline_allocated
+            ) / mib,
+            "measured_peak_reserved_increase_mib": max(
+                0, peak_reserved - baseline_reserved
+            ) / mib,
+        }
 
     return {
         "device": device,
@@ -174,14 +190,10 @@ def benchmark_case(
         "latency_ms_mean": mean_ms,
         "latency_ms_p95": p95_ms,
         "throughput_images_per_second": throughput,
-        "peak_allocated_vram_mib": peak_allocated_mib,
-        "peak_reserved_vram_mib": peak_reserved_mib,
-        "incremental_peak_allocated_vram_mib": incremental_allocated_mib,
-        "incremental_peak_reserved_vram_mib": incremental_reserved_mib,
+        **memory,
         "output_valid": True,
         "status": "PASS",
     }
-
 
 def run_benchmark(
     encoder: OSNetEncoder,
@@ -314,24 +326,25 @@ def main() -> int:
 
     all_results: list[dict[str, object]] = []
 
-    # Interleave default and IEEE modes for each device and batch size.
+    # Pair default and IEEE runs for each batch size to reduce run-order bias.
     # CPU measurements are included under both labels for completeness;
     # CUDA FP32 precision controls are primarily relevant to GPU kernels.
     for device, encoder in (
         ("cpu", cpu_encoder),
         ("cuda", cuda_encoder),
     ):
-        for precision in PRECISION_MODES:
-            all_results.extend(
-                run_benchmark(
-                    encoder=encoder,
-                    device=device,
-                    precision=precision,
-                    batch_sizes=tuple(args.batches),
-                    warmup=args.warmup,
-                    iterations=args.iterations,
+        for batch_size in args.batches:
+            for precision in PRECISION_MODES:
+                all_results.extend(
+                    run_benchmark(
+                        encoder=encoder,
+                        device=device,
+                        precision=precision,
+                        batch_sizes=(batch_size,),
+                        warmup=args.warmup,
+                        iterations=args.iterations,
+                    )
                 )
-            )
 
     print("\n" + "=" * 72)
     print("FINAL BENCHMARK RESULTS (JSON)")
