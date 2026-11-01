@@ -375,13 +375,17 @@ The user also verified that the corresponding Hugging Face file entry displays
 an MIT license label. However, the model author's clarification says pretrained
 models are for research use because training datasets may impose restrictions;
 MSMT17 access requires a signed agreement. The separate downstream rights for
-these weights have not been established. CPU fallback and CPU/GPU parity have
-not been measured. No Market-1501 retrieval was run.
+these weights have not been established. CPU inference and CPU/CUDA parity
+were subsequently verified on the target laptop for synthetic batches 1 and 4
+under explicit IEEE FP32 settings; both passed the declared numerical
+tolerances. No Market-1501 retrieval was run.
 
 **D3 remains open.** Keep the checkpoint local and out of Market-1501 evaluation
-until downstream use is explicitly cleared. Complete target CPU/GPU parity
-using synthetic inputs, then resolve the checkpoint terms or choose a checkpoint
-with documented weight and training-data rights. See [D3 validation record](D3_VALIDATION.md).
+until downstream use is explicitly cleared. CPU/CUDA synthetic parity passed
+under explicit IEEE FP32 settings; profile the runtime cost of this precision
+mode before adopting it in production. Resolve the checkpoint terms or choose
+weights with documented rights and training-data provenance. See
+[D3 validation record](D3_VALIDATION.md).
 
 ## 14. Milestones after the gates are approved
 
@@ -401,7 +405,9 @@ The standalone OSNet adapter and its regression tests are implemented on the
 separate adapter branch. Do not merge PR #2/#3 or replace the baseline until
 the architecture gates are resolved. Do not run Market-1501 retrieval with the
 MSMT17 checkpoint until downstream weight-use rights are explicitly cleared.
-CPU/GPU parity must be measured on the target laptop. Do not install more
+CPU/GPU parity passed on the target laptop under explicit IEEE FP32 validation
+settings; measure runtime/resource cost before adopting this as the production
+precision policy. Do not install more
 `torchreid` dependencies, alter the local environment, or process NVIDIA
 scene videos without their separate approval.
 
@@ -411,7 +417,7 @@ scene videos without their separate approval.
 |---|---|---|
 | D1 Dataset | CLOSED | NVIDIA PhysicalAI Smart Spaces, pinned 2024 scene_002; cameras 12/14/17/19 for the initial four-view benchmark; synthetic-only validity and timestamp caveats documented |
 | D2 Baselines | CLOSED — BASELINE-V1 CORRECTNESS SCOPE | baseline-v0 code remains at MVP revision `2cfd0ea55fbc594eb580c3b044c3e8820bd66db3`; baseline-v1 correctness changes and regression tests are on `codex/baseline-v1-correctness`; target Windows verification reported Ruff clean and 43 repository tests passed. ReID, downloads, dependency/schema changes, and PR #2 merge remain gated |
-| D3 Encoder | OPEN | OSNet x0.25 adapter is implemented and passed target-Windows tests plus synthetic RTX 3050 CUDA inference; CPU/GPU parity is unmeasured and MSMT17 checkpoint downstream-use rights remain unresolved. See [D3 validation record](D3_VALIDATION.md). |
+| D3 Encoder | OPEN | OSNet x0.25 adapter passed target-Windows tests, synthetic RTX 3050 CUDA inference, and CPU/CUDA parity for batches 1 and 4 under explicit IEEE FP32 settings; MSMT17 checkpoint downstream-use rights remain unresolved. See [D3 validation record](D3_VALIDATION.md). |
 | D4 Tracklets | OPEN | Measure purity/fragmentation before locking rules |
 | D5 Timing/topology | OPEN | Explicit offsets, uncertainty, and overlap states required |
 | D6 Association | PROPOSED | Eligibility → top-k retrieval → learned/fit pair scorer → assignment |
