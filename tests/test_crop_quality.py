@@ -209,6 +209,16 @@ def test_ground_truth_matching_validates_alignment_and_threshold():
         match_frame_detections_to_ground_truth([], [], [], min_iou=1.1)
 
 
+def test_ground_truth_matching_never_assigns_zero_overlap_even_at_zero_threshold():
+    matches = match_frame_detections_to_ground_truth(
+        predicted_boxes=[(0, 0, 10, 10)],
+        ground_truth_boxes=[(20, 20, 30, 30)],
+        ground_truth_ids=["person-A"],
+        min_iou=0.0,
+    )
+    assert matches == [None]
+
+
 def test_tracklet_purity_reports_mixed_identity_and_unmatched_coverage():
     result = summarize_tracklet_purity(["person-A", "person-A", "person-B", None])
     assert result.observation_count == 4
