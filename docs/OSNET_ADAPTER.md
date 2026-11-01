@@ -50,6 +50,21 @@ cost before adopting it as a runtime policy. The preprocessing contract is
 RGB, 256x128, ImageNet mean/std, then explicit L2 normalization; no real image
 crops or retrieval benchmark have been evaluated.
 
+## Synthetic precision/performance benchmark
+
+Run the local benchmark with:
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\benchmark_osnet_precision.py
+```
+
+It compares backend-default and IEEE FP32 settings on CPU and CUDA with
+synthetic inputs at batch sizes 1, 4, 8, and 16. It reports median/mean/p95
+latency, throughput, and CUDA memory peaks. Timed operations include the
+adapter's device transfers and CPU output return. The script has been added
+but target-laptop performance results are still pending. It does not use
+Market-1501 or any person imagery.
+
 ## Use
 
 Instantiate `OSNetConfig(checkpoint_path=..., expected_sha256=...)` and pass it
