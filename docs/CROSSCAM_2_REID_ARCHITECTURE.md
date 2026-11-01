@@ -148,11 +148,20 @@ The adapter must:
 
 A mixed-identity tracklet contaminates its embedding and can make any ReID model appear unreliable. Measure tracklet purity, observation count, fragmentation, and crop quality before evaluating cross-camera association.
 
+The D4 implementation adds `src/crosscam/crop_quality.py` and
+`scripts/diagnose_crop_quality.py` for in-memory crop assessment, bounded
+temporal candidate selection, and metadata-only reporting. It does not yet
+measure identity purity on real labels or establish validated crop thresholds.
+See [D4 tracklet quality](D4_TRACKLET_QUALITY.md).
+
 ### 6.2 Crop selection and aggregation
 
 - Clamp bounding boxes to image bounds and reject empty or invalid crops.
 - Exclude crops below a documented minimum size and flag severe blur/occlusion when measurable.
 - Use several temporally distributed, usable crops per tracklet.
+- The current D4 prototype reports width/height, detector score, visible-area fraction, and Laplacian-variance sharpness. Its default thresholds are provisional and must be tuned on a development split.
+- Candidate observations are sampled across each local track's time span (bounded by max-crops × candidate multiplier); crops are assessed in memory and not persisted by default.
+- A tracklet's crop-quality eligibility is not identity purity. Purity requires ground-truth box/identity matching and must report unmatched-observation coverage.
 - Compare a normalized mean against a quality-weighted or robust aggregation only on the development split; do not assume mean aggregation is optimal.
 - Store embeddings and crop metadata by default, not raw crops.
 - Cache keys must include video hash, detector/tracker configuration, crop-selection version, encoder/checkpoint hash, and preprocessing version.
@@ -421,7 +430,7 @@ scene videos without their separate approval.
 | D1 Dataset | CLOSED | NVIDIA PhysicalAI Smart Spaces, pinned 2024 scene_002; cameras 12/14/17/19 for the initial four-view benchmark; synthetic-only validity and timestamp caveats documented |
 | D2 Baselines | CLOSED — BASELINE-V1 CORRECTNESS SCOPE | baseline-v0 code remains at MVP revision `2cfd0ea55fbc594eb580c3b044c3e8820bd66db3`; baseline-v1 correctness changes and regression tests are on `codex/baseline-v1-correctness`; target Windows verification reported Ruff clean and 43 repository tests passed. ReID, downloads, dependency/schema changes, and PR #2 merge remain gated |
 | D3 Encoder | OPEN | OSNet x0.25 adapter passed target-Windows tests, synthetic CUDA smoke testing and CPU/CUDA parity under IEEE FP32; three-round CUDA repeatability benchmark completed 24/24 cases with no consistent precision speed winner. MSMT17 checkpoint downstream-use rights remain unresolved. See [D3 validation record](D3_VALIDATION.md). |
-| D4 Tracklets | OPEN | Measure purity/fragmentation before locking rules |
+| D4 Tracklets | IN PROGRESS | Crop-quality utility and metadata-only diagnostic CLI added on `codex/d4-tracklet-quality`; provisional thresholds and synthetic-video tests are present. Target-Windows tests and validation on an authorized labeled development sequence remain open. See [D4 tracklet quality](D4_TRACKLET_QUALITY.md). |
 | D5 Timing/topology | OPEN | Explicit offsets, uncertainty, and overlap states required |
 | D6 Association | PROPOSED | Eligibility → top-k retrieval → learned/fit pair scorer → assignment |
 | D7 Review policy | PROPOSED | Accept/defer/reject; no automatic global merge |
