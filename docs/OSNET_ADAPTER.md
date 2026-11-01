@@ -65,6 +65,19 @@ adapter's device transfers and CPU output return. The script has been added
 but target-laptop performance results are still pending. It does not use
 Market-1501 or any person imagery.
 
+## CUDA precision repeatability benchmark
+
+Use the focused three-round benchmark after pulling the latest branch:
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\repeat_osnet_cuda_benchmark.py
+```
+
+It compares default versus IEEE FP32 in alternating order over three rounds,
+with identical synthetic inputs and batch sizes 1, 4, 8, and 16. The script
+writes detailed JSON to `outputs/osnet_cuda_repeatability.json`. Results are
+pending; this benchmark does not load Market-1501 or person imagery.
+
 ## Use
 
 Instantiate `OSNetConfig(checkpoint_path=..., expected_sha256=...)` and pass it
