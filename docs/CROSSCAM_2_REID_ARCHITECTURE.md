@@ -360,6 +360,29 @@ The pinned Hugging Face dataset card displays **Creative Commons Attribution 4.0
 
 **Closed for the approved baseline-v1 correctness scope.** The baseline-v1 changes are on the separate branch `codex/baseline-v1-correctness`, based on the approved architecture branch. Scope covers candidate-widening union behavior, neutral unknown topology evidence, explicit camera relationship states, duplicate-edge validation, explicit timing-offset uncertainty, configurable widening horizon and time-decay, decision margins, and elapsed-seconds tracker retention. On the target Windows environment, Ruff reported **All checks passed** and the full repository test suite reported **43 passed**. The user supplied these target-machine results. No ReID model/checkpoint, NVIDIA video, dependency, environment, or schema change was introduced.
 
+## D3 validation update (2026-11-01)
+
+The OSNet x0.25 adapter is implemented on the separate
+`codex/osnet-adapter-benchmark` branch. On the target Windows laptop, the
+user supplied successful results: 65 pytest tests passed, Ruff reported all
+checks passed, and `git diff --check` passed. A separate synthetic CUDA
+smoke test strictly loaded the 9,336,983-byte checkpoint (SHA-256
+`cf55163d78fc44c62c82f85ab62d39f10438679b5abe8c698ae08cfa84aa6e18`) and
+produced finite 512-D outputs at batch sizes 1 and 4 on the RTX 3050. The
+measured synthetic forward latencies were 17.336 ms and 17.442 ms respectively.
+
+The user also verified that the corresponding Hugging Face file entry displays
+an MIT license label. However, the model author's clarification says pretrained
+models are for research use because training datasets may impose restrictions;
+MSMT17 access requires a signed agreement. The separate downstream rights for
+these weights have not been established. CPU fallback and CPU/GPU parity have
+not been measured. No Market-1501 retrieval was run.
+
+**D3 remains open.** Keep the checkpoint local and out of Market-1501 evaluation
+until downstream use is explicitly cleared. Complete target CPU/GPU parity
+using synthetic inputs, then resolve the checkpoint terms or choose a checkpoint
+with documented weight and training-data rights. See [D3 validation record](D3_VALIDATION.md).
+
 ## 14. Milestones after the gates are approved
 
 - **A0 — Freeze and correct baseline:** capture baseline-v0; specify baseline-v1; fix and test candidate generation, overlap, topology prior, timing, and config defects.
@@ -374,7 +397,13 @@ A milestone is not complete merely because its code runs; its stated tests and e
 
 ## 15. Current stop line
 
-Until D1–D10 are resolved, the permitted work is architecture review, source/license research, dataset feasibility assessment, decision-log updates, and non-mutating inspection of the existing implementation. Do not start ReID implementation, download checkpoints, continue installing `torchreid` dependencies, alter the local environment, or merge PR #2.
+The standalone OSNet adapter and its regression tests are implemented on the
+separate adapter branch. Do not merge PR #2/#3 or replace the baseline until
+the architecture gates are resolved. Do not run Market-1501 retrieval with the
+MSMT17 checkpoint until downstream weight-use rights are explicitly cleared.
+CPU/GPU parity must be measured on the target laptop. Do not install more
+`torchreid` dependencies, alter the local environment, or process NVIDIA
+scene videos without their separate approval.
 
 ## 16. Decision log
 
@@ -382,7 +411,7 @@ Until D1–D10 are resolved, the permitted work is architecture review, source/l
 |---|---|---|
 | D1 Dataset | CLOSED | NVIDIA PhysicalAI Smart Spaces, pinned 2024 scene_002; cameras 12/14/17/19 for the initial four-view benchmark; synthetic-only validity and timestamp caveats documented |
 | D2 Baselines | CLOSED — BASELINE-V1 CORRECTNESS SCOPE | baseline-v0 code remains at MVP revision `2cfd0ea55fbc594eb580c3b044c3e8820bd66db3`; baseline-v1 correctness changes and regression tests are on `codex/baseline-v1-correctness`; target Windows verification reported Ruff clean and 43 repository tests passed. ReID, downloads, dependency/schema changes, and PR #2 merge remain gated |
-| D3 Encoder | OPEN | OSNet family is a candidate, not selected |
+| D3 Encoder | OPEN | OSNet x0.25 adapter is implemented and passed target-Windows tests plus synthetic RTX 3050 CUDA inference; CPU/GPU parity is unmeasured and MSMT17 checkpoint downstream-use rights remain unresolved. See [D3 validation record](D3_VALIDATION.md). |
 | D4 Tracklets | OPEN | Measure purity/fragmentation before locking rules |
 | D5 Timing/topology | OPEN | Explicit offsets, uncertainty, and overlap states required |
 | D6 Association | PROPOSED | Eligibility → top-k retrieval → learned/fit pair scorer → assignment |
